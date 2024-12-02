@@ -32,7 +32,11 @@ const Input: React.FC<InputProps> = ({
         {...register(name, { required })}
         className={`border border-slate-300  w-full max-w-[450px] rounded-md p-1 input ${error ? 'input-error' : ''}`}
       />
-      {error && <p className="error-text text-black">{error.message}</p>}
+      {error && (
+        <p className="text-xs font-semibold text-red-400 pr-1 text-right">
+          {error.message}
+        </p>
+      )}
     </div>
   );
 };

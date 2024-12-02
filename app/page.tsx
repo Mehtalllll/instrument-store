@@ -19,8 +19,19 @@ export default function Home() {
           className="placeholder:text-right w-[500px] mx-10 rounded-md border-2 px-2 pb-1 h-10 border-slate-300"
         />
         <div className="flex flex-row gap-x-2">
-          <Button text="سبد خرید" img={<FaUser />} />
-          <Button text="سبد خرید" img={<FaCartShopping />} number={0} />
+          <Button
+            text="ورود کاربران"
+            img={<FaUser />}
+            classname="text-sm font-semibold w-36 border-orange-500 text-orange-500"
+            color="bg-orange-500"
+          />
+          <Button
+            text="سبد خرید"
+            img={<FaCartShopping />}
+            number={0}
+            classname=" font-semibold border-green-500 text-green-500"
+            color="bg-green-500"
+          />
         </div>
       </section>
       <hr className="border border-slate-300 mt-3" />
