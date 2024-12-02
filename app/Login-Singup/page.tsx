@@ -1,18 +1,69 @@
 'use client';
+
+import { z } from 'zod';
+import React from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+
 import Input from '@/components/Input';
 import { ClassNames } from '@/utils/classname-join';
-import { log } from 'console';
-import React from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { getLoginReq } from '@/apis/Login';
+import { getSingupReq } from '@/apis/Singup';
 
-type Inputs = {
-  username: string;
-  password: string;
-};
+const loginSchema = z.object({
+  username: z
+    .string()
+    .min(1, '.نام کاربردی را وارد کنید')
+    .max(25, 'کلمه عبور بایدکمتر از 25 حرف باشد'),
+  password: z.string(),
+  // .regex(
+  //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+  //   '.رمز عبور باید حداقل 8 کاراکتر داشته باشد، شامل یک حرف بزرگ، یک حرف کوچک، یک عدد و یک کاراکتر خاص باشد',
+  // ),
+});
+
+const SingupSchema = z.object({
+  firstname: z.string().min(1, '.نام خود را وارد کنید'),
+  lastname: z.string().min(1, 'نام خانوادگی خود را وارد کنید'),
+  username: z
+    .string()
+    .min(1, '.نام کاربردی را وارد کنید')
+    .max(25, 'کلمه عبور بایدکمتر از 25 حرف باشد'),
+  password: z.string(),
+  // .regex(
+  //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+  //   '.رمز عبور باید حداقل 8 کاراکتر داشته باشد، شامل یک حرف بزرگ، یک حرف کوچک، یک عدد و یک کاراکتر خاص باشد',
+  // ),
+  phoneNumber: z
+    .string()
+    .regex(/^09[0-9]{9}$/, '.شماره خود را به درستی وارد کنید'),
+  address: z.string().min(1, '.آدرس را وارد کنید'),
+});
+
+export type LoginFormInputs = z.infer<typeof loginSchema>;
+export type SingupFormInputs = z.infer<typeof SingupSchema>;
 
 const getLogin: React.FC = () => {
-  const loginForm = useForm<Inputs>();
-  const onSubmit: SubmitHandler<Inputs> = data => console.log(data);
+  const Router = useRouter();
+  const loginForm = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const SingupForm = useForm<SingupFormInputs>({
+    resolver: zodResolver(SingupSchema),
+  });
+
+  const onSubmitLog: SubmitHandler<LoginFormInputs> = data => {
+    const response = getLoginReq(data);
+    response.then(result => {
+      result?.data.user.role === 'ADMIN'
+        ? Router.push('/')
+        : Router.push('/not-found');
+    });
+  };
+  const onSubmitSing: SubmitHandler<SingupFormInputs> = data =>
+    getSingupReq(data);
   const [LoginOrSingin, SetLoginOrSingin] = React.useState<1 | 2>(1);
   return (
     <main className="container w-full  mx-auto bg-slate-200 px-2 pb-28">
@@ -43,7 +94,7 @@ const getLogin: React.FC = () => {
           </p>
         </div>
         <form
-          onSubmit={loginForm.handleSubmit(onSubmit)}
+          onSubmit={loginForm.handleSubmit(onSubmitLog)}
           className={ClassNames(
             'flex flex-col gap-y-5 pt-12',
             `${LoginOrSingin == 2 && 'hidden'}`,
@@ -76,7 +127,7 @@ const getLogin: React.FC = () => {
         </form>
 
         <form
-          onSubmit={loginForm.handleSubmit(onSubmit)}
+          onSubmit={SingupForm.handleSubmit(onSubmitSing)}
           className={ClassNames(
             'flex flex-col gap-y-5 pt-12',
             `${LoginOrSingin == 1 && 'hidden'}`,
@@ -87,57 +138,49 @@ const getLogin: React.FC = () => {
               name="firstname"
               label=":نام "
               placeholder="Enter your firstname"
-              register={loginForm.register}
+              register={SingupForm.register}
               required={true}
-              error={loginForm.formState.errors.username}
+              error={SingupForm.formState.errors.firstname}
             />
             <Input
               name="lastname"
               label=":نام خانوادگی"
               placeholder="Enter your lastname"
-              register={loginForm.register}
+              register={SingupForm.register}
               required={true}
-              error={loginForm.formState.errors.username}
+              error={SingupForm.formState.errors.lastname}
             />
             <Input
               name="username"
               label=":نام کاربری"
               placeholder="Enter your username"
-              register={loginForm.register}
+              register={SingupForm.register}
               required={true}
-              error={loginForm.formState.errors.username}
+              error={SingupForm.formState.errors.username}
             />
             <Input
               name="password"
               label=":رمز عبور"
               placeholder="Enter your Passwors"
-              register={loginForm.register}
+              register={SingupForm.register}
               required={true}
-              error={loginForm.formState.errors.password}
+              error={SingupForm.formState.errors.password}
             />
             <Input
               name="phoneNumber"
               label=":شماره تماس"
               placeholder="Enter your phoneNumber"
-              register={loginForm.register}
+              register={SingupForm.register}
               required={true}
-              error={loginForm.formState.errors.username}
+              error={SingupForm.formState.errors.phoneNumber}
             />
             <Input
               name="address"
               label=":نشانی"
               placeholder="Enter your address"
-              register={loginForm.register}
+              register={SingupForm.register}
               required={true}
-              error={loginForm.formState.errors.username}
-            />
-            <Input
-              name="firstname"
-              label=":نام کاربری"
-              placeholder="Enter your username"
-              register={loginForm.register}
-              required={true}
-              error={loginForm.formState.errors.username}
+              error={SingupForm.formState.errors.address}
             />
             <button
               type="submit"
