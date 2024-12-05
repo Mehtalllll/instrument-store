@@ -44,7 +44,7 @@ const SingupSchema = z.object({
 export type LoginFormInputs = z.infer<typeof loginSchema>;
 export type SingupFormInputs = z.infer<typeof SingupSchema>;
 
-const getLogin: React.FC = () => {
+const getLoginandSingup: React.FC = () => {
   const Router = useRouter();
   const loginForm = useForm<LoginFormInputs>({
     resolver: zodResolver(loginSchema),
@@ -57,9 +57,7 @@ const getLogin: React.FC = () => {
   const onSubmitLog: SubmitHandler<LoginFormInputs> = data => {
     const response = getLoginReq(data);
     response.then(result => {
-      result?.data.user.role === 'ADMIN'
-        ? Router.push('/')
-        : Router.push('/not-found');
+      result?.data.user.role === 'ADMIN' ? Router.push('/') : Router.push('/');
     });
   };
   const onSubmitSing: SubmitHandler<SingupFormInputs> = data =>
@@ -194,4 +192,4 @@ const getLogin: React.FC = () => {
     </main>
   );
 };
-export default getLogin;
+export default getLoginandSingup;

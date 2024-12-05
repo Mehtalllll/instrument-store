@@ -18,10 +18,12 @@ export const getLoginReq = async (data: LoginFormInputs) => {
 
     if (response.ok) {
       console.log('Login successful:', result);
-      toast.success('ورود با موفقیت');
+      toast.success('ورود موفقیت آمیز');
+
       setSession('accessToken', result.token.accessToken);
       setSession('refreshToken', result.token.refreshToken);
       setSession('UserRole', result.data.user.role);
+      setSession('UserId', result.data.user._id);
       return result;
     } else {
       console.error('Login failed:', result);
