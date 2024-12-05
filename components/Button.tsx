@@ -5,14 +5,25 @@ interface IButton {
   text: string;
   number?: number;
   classname?: string;
-  color: string;
+  classnamefoText?: string;
+  color?: string;
+  onClick?: (event: React.MouseEvent<HTMLButtonElement> | undefined) => void;
 }
-const Button: React.FC<IButton> = ({ img, text, number, classname, color }) => {
+const Button: React.FC<IButton> = ({
+  img,
+  text,
+  number,
+  classname,
+  color,
+  classnamefoText,
+  onClick,
+}) => {
   return (
     <main>
       <button
+        onClick={onClick}
         className={ClassNames(
-          'border shadow  flex flex-row justify-end items-center gap-x-1 w-36 h-10 rounded-md hover:shadow-2xl hover:border-slate-300',
+          'border shadow  flex flex-row justify-end items-center gap-x-1  h-10 rounded-md hover:shadow-2xl hover:border-slate-300',
           `${classname}`,
         )}
       >
@@ -21,11 +32,18 @@ const Button: React.FC<IButton> = ({ img, text, number, classname, color }) => {
             {number}
           </p>
         )}
-        <p className="w-3/6 h-full flex items-center justify-center">{text}</p>
+        <p
+          className={ClassNames(
+            'w-3/6  text-sm h-full flex items-center justify-center',
+            `${classnamefoText}`,
+          )}
+        >
+          {text}
+        </p>
         {img && (
           <div
             className={ClassNames(
-              'w-2/6 flex justify-center items-center text-center text-white bg-green-500 h-full rounded-r-md',
+              'w-2/6 flex justify-center items-center text-center text-white z-10  bg-green-500 h-full rounded-r-md',
               `${color}`,
             )}
           >

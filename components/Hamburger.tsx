@@ -4,9 +4,32 @@ import Hamburger from 'hamburger-react';
 import { RiArrowDownSFill } from 'react-icons/ri';
 import React from 'react';
 import { ClassNames } from '@/utils/classname-join';
+import { fetchCategories } from '@/apis/categories';
+import { IRescategories } from '@/types/categories';
+import { IRessubcategories } from '@/types/subcategories';
+import { fetchSubCategories } from '@/apis/subcategories';
 
 export default function HamburgerMenu() {
   const [isOpen, setisOpen] = React.useState<boolean>(false);
+  const [isOpensub, setisOpensub] = React.useState<boolean>(false);
+  const [categories, setcategories] = React.useState<IRescategories>();
+  const [subcategories, setsubcategories] = React.useState<IRessubcategories>();
+
+  React.useEffect(() => {
+    const loadCategories = async () => {
+      const result: IRescategories = await fetchCategories();
+      setcategories(result);
+    };
+    const loadsubCategories = async () => {
+      const result2: IRessubcategories = await fetchSubCategories();
+      setsubcategories(result2);
+    };
+
+    loadCategories();
+    loadsubCategories();
+  }, []);
+  console.log(subcategories);
+
   return (
     <main className=" w-fit flex flex-col">
       <div
@@ -34,10 +57,34 @@ export default function HamburgerMenu() {
         </div>
       </div>
       {isOpen && (
-        <div className="bg-teal-400 w-full rounded-b-md">
-          <p>گیتار</p>
-          <p>پیانو</p>
-          <p>سه تار</p>
+        <div className="bg-teal-400 w-full rounded-b-md pb-2">
+          {categories &&
+            categories.data.categories.map((cat, index) => {
+              return (
+                <>
+                  <p
+                    key={index}
+                    onClick={() => setisOpensub(!isOpensub)}
+                    className="text-right px-2 hover:bg-teal-300 w-full cursor-pointer py-1"
+                  >
+                    {cat.name}
+                    {isOpensub && (
+                      <div className="bg-teal-400 w-full py-1">
+                        {subcategories &&
+                          subcategories.data.subcategories.map((sub, index) => (
+                            <p
+                              key={index}
+                              className="text-right px-2 hover:bg-teal-300 w-full cursor-pointer"
+                            >
+                              {cat._id == sub.category && sub.name}
+                            </p>
+                          ))}
+                      </div>
+                    )}
+                  </p>
+                </>
+              );
+            })}
         </div>
       )}
     </main>
