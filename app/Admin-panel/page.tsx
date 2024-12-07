@@ -1,18 +1,20 @@
 'use client';
 import { fetchAllOrders } from '@/apis/AllOrders';
 import { fetchAllproduct } from '@/apis/AllProduct';
-import { fetchDelproduct } from '@/apis/DeleteProduct';
-import { GetEditeProduct } from '@/apis/EditProduct';
+import { getAllUserData } from '@/apis/AllUserData';
+import ProductContainer from '@/components/Admin-Panel/product';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
 import { RootState } from '@/Redux/store';
+import { IResUserlist } from '@/types/Alluser';
 import { IResOrders } from '@/types/Orders';
 import { IProductsList } from '@/types/Product';
+import { ClassNames } from '@/utils/classname-join';
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
-import { any, string, z } from 'zod';
+import { z } from 'zod';
 
 const EditSchema = z.object({
   name: z.string().min(1, 'نام محصول الزامی است'),
@@ -22,6 +24,7 @@ const EditSchema = z.object({
   description: z.string().min(1, 'توضیحات الزامی است'),
   thumbnail: z.string(),
   images: z.any(), // قبول فایل
+  subcategory: z.string(),
 });
 
 type EditFormInputs = z.infer<typeof EditSchema>;
@@ -29,14 +32,16 @@ type EditFormInputs = z.infer<typeof EditSchema>;
 const AdminPanel: React.FC = () => {
   const [Allproduct, setAllproduct] = React.useState<IProductsList>();
   const [AllOrders, setAllOrders] = React.useState<IResOrders>();
-  const [EditId, setEditId] = React.useState<string | null>(null);
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
   const [PageOrders, setPageOrders] = React.useState<number>(1);
+  const [information, setInformation] = React.useState<IResUserlist>();
   const [filters, setFilters] = React.useState({
-    name: 'ibanez', // فیلتر نام محصول
-    minPrice: '', // فیلتر حداقل قیمت
-    maxPrice: '', // فیلتر حداکثر قیمت
+    name: ' ', // فیلتر نام محصول
   });
+  const [EditePriceAndQuantity, setEditePriceAndQuantity] = React.useState<
+    string | null
+  >(null);
+
   const handleFilterChange = (field: string, value: string) => {
     setFilters(prev => ({ ...prev, [field]: value }));
   };
@@ -71,6 +76,7 @@ const AdminPanel: React.FC = () => {
       brand: '',
       description: '',
       thumbnail: '',
+      subcategory: '',
     },
   });
 
@@ -91,192 +97,136 @@ const AdminPanel: React.FC = () => {
     loadAllOrders(PageOrders);
   }, [PageOrders]);
 
-  console.log(AllOrders);
-
-  // وقتی EditId تغییر می‌کند، مقادیر فرم را مقداردهی اولیه کن
   React.useEffect(() => {
-    if (EditId && Allproduct) {
-      const product = Allproduct.data.products.find(p => p._id === EditId);
-      if (product) {
-        EditForm.reset({
-          name: product.name,
-          price: product.price.toString(),
-          quantity: product.quantity.toString(),
-          brand: product.brand,
-          description: product.description,
-          thumbnail: product.thumbnail,
-        });
-      }
-    }
-  }, [EditId, Allproduct, EditForm]);
+    const fetchData = async () => {
+      const data: IResUserlist = await getAllUserData();
+      setInformation(data);
+    };
 
-  // هندل کردن سابمیت فرم
-  const onSubmitEdit: SubmitHandler<EditFormInputs> = async data => {
+    fetchData();
+  }, [PageOrders]);
+
+  const onSubmitEditForPrice: SubmitHandler<EditFormInputs> = async data => {
     console.log('Form Data:', data);
-    // ارسال داده به سرور (مثلاً API)
     const formData = new FormData();
-    formData.append('name', data.name);
     formData.append('price', data.price);
     formData.append('quantity', data.quantity);
-    formData.append('brand', data.brand);
-    formData.append('description', data.description);
-    if (data.images && data.images[0]) {
-      formData.append('images', data.images[0]);
-    }
     console.log(formData);
-    GetEditeProduct(formData, EditId);
+    // GetEditeProduct(formData, EditePriceAndQuantity);
   };
+
+  console.log(information);
 
   return (
     <main className="container mx-auto  ">
-      {activity === 'مدیریت محصولات' && (
+      {activity === 'کالاها' && <ProductContainer />}
+      {activity === 'موجودی و قیمت ها' && (
         <div className="p-5 flex flex-col gap-y-3">
-          <section className="bg-white rounded-md shadow-md w-full h-fit p-4">
-            <table className="min-w-full border-collapse border border-gray-300 text-center">
-              <thead className="bg-gray-100 text-gray-800">
-                <tr className="border-b border-gray-300">
-                  <th className="p-3 font-medium">عملیات</th>
-                  <th className="p-3 font-medium">قیمت</th>
-                  <th className="p-3 font-medium">تعداد</th>
-                  <th className="p-3 font-medium">تصویر</th>
-                  <th className="p-3 font-medium">نام محصول</th>
-                </tr>
-              </thead>
+          <section className="w-full max-w-[1000px] mx-auto bg-white rounded-md shadow-md  h-fit p-4">
+            <div className="flex justify-between p-2">
+              <Button
+                text="افزودن کالا"
+                classname="border-green-300 text-white w-36 flex justify-center font-semibold bg-green-500"
+              />
+              <p className="text-xl font-bold">مدیریت کالا</p>
+            </div>
+            <form onSubmit={EditForm.handleSubmit(onSubmitEditForPrice)}>
+              <table className="w-full max-w-[1000px] mx-auto border-collapse border border-gray-300 text-center">
+                <thead className="bg-gray-100 text-gray-800">
+                  <tr className="border-b border-gray-300">
+                    <th className="p-3 font-medium">عملیات</th>
+                    <th className="p-3 font-medium">موجودی</th>
+                    <th className="p-3 font-medium">قیمت</th>
+                    <th className="p-3 font-medium">کالا</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Allproduct &&
+                    filteredData.map((p, index) => (
+                      <tr
+                        key={p._id}
+                        className={`${
+                          index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                        } hover:bg-gray-50 `}
+                      >
+                        <td className="p3 w-1/5">
+                          <div className="flex gap-2 justify-center">
+                            <Button
+                              classname="w-20 border border-blue-500 flex justify-center hover:bg-blue-500 hover:text-white"
+                              text="ذخیره"
+                              onClick={() => setEditePriceAndQuantity(null)}
+                            />
+                          </div>
+                        </td>
 
-              <tbody>
-                {Allproduct &&
-                  filteredData.map((p, index) => (
-                    <tr
-                      key={p._id}
-                      className={`${
-                        index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                      } hover:bg-gray-50`}
-                    >
-                      <td className="p-3">
-                        <div className="flex gap-2 justify-center">
-                          <Button
-                            classname="w-20 border border-blue-500 flex justify-center hover:bg-blue-500 hover:text-white"
-                            text="ویرایش"
-                            onClick={() => setEditId(p._id)}
-                          />
-                          <Button
-                            onClick={() => fetchDelproduct(p._id)}
-                            classname="w-20 border border-red-500 flex justify-center hover:bg-red-500 hover:text-white"
-                            text="حذف"
-                          />
-                        </div>
-                      </td>
-
-                      <td className="p-3 text-gray-700 font-medium">
-                        {p.price} تومان
-                      </td>
-
-                      <td className="p-3 text-gray-700">{p.quantity}</td>
-
-                      <td className="p-3">
-                        <img
-                          src={`http://localhost:8000/images/products/images/${p.images[0]}`}
-                          alt={p.images[0]}
-                          width={50}
-                          className="mx-auto rounded-md shadow-sm"
-                        />
-                      </td>
-
-                      <td className="p-3 text-gray-800 font-semibold">
-                        {p.name}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+                        <td
+                          className={ClassNames(
+                            'p3 text-gray-800 font-semibold w-1/5',
+                          )}
+                        >
+                          <div
+                            className={ClassNames(
+                              'w-full max-w-44 mx-auto ',
+                              `${EditePriceAndQuantity == p._id ? 'block' : 'hidden'}`,
+                            )}
+                          >
+                            <Input
+                              name="quantity"
+                              placeholder="Enter quantity"
+                              register={EditForm.register}
+                              required={false}
+                              error={EditForm.formState.errors.quantity}
+                            />
+                          </div>
+                          <div
+                            onClick={() => setEditePriceAndQuantity(p._id)}
+                            className={ClassNames(
+                              'p-3 text-gray-800 font-semibold',
+                              `${EditePriceAndQuantity == p._id ? 'hidden' : 'block'}`,
+                            )}
+                          >
+                            {p.quantity}
+                          </div>
+                        </td>
+                        <td
+                          className={ClassNames(
+                            'p-3 text-gray-800 font-semibold w-1/5 ',
+                          )}
+                        >
+                          <div
+                            className={ClassNames(
+                              'w-full max-w-44 flex justify-center mx-auto',
+                              `${EditePriceAndQuantity == p._id ? 'block' : 'hidden'}`,
+                            )}
+                          >
+                            <Input
+                              name="price"
+                              placeholder="Enter price"
+                              register={EditForm.register}
+                              required={false}
+                              error={EditForm.formState.errors.price}
+                            />
+                          </div>
+                          <div
+                            onClick={() => setEditePriceAndQuantity(p._id)}
+                            className={ClassNames(
+                              'p-3 text-gray-800 font-semibold',
+                              `${EditePriceAndQuantity == p._id ? 'hidden' : 'block'}`,
+                            )}
+                          >
+                            {p.price}
+                          </div>
+                        </td>
+                        <td className="py-3 px-1 text-gray-800 font-semibold w-2/5">
+                          {p.name}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </form>
           </section>
 
-          {EditId !== null && (
-            <section className="bg-gray-100 rounded-md border-2 border-slate-700 w-full h-fit p-5">
-              <form
-                onSubmit={EditForm.handleSubmit(onSubmitEdit)}
-                className="grid grid-cols-4 gap-2 "
-              >
-                <Input
-                  name="price"
-                  label=":قیمت "
-                  placeholder="Enter price"
-                  register={EditForm.register}
-                  required={false}
-                  error={EditForm.formState.errors.price}
-                />
-                <Input
-                  name="quantity"
-                  label=":تعداد "
-                  placeholder="Enter quantity"
-                  register={EditForm.register}
-                  required={false}
-                  error={EditForm.formState.errors.quantity}
-                />
-                <Input
-                  name="brand"
-                  label=":نام تجاری "
-                  placeholder="Enter brand"
-                  register={EditForm.register}
-                  required={false}
-                  error={EditForm.formState.errors.brand}
-                />
-
-                <Input
-                  name="name"
-                  label=":نام محصول"
-                  placeholder="Enter name"
-                  register={EditForm.register}
-                  required={false}
-                  error={EditForm.formState.errors.name}
-                />
-
-                <div className="col-span-3 ">
-                  <div className="w-full flex flex-col gap-y-2 items-end px-6 ">
-                    <label className="text-slate-700" htmlFor="description">
-                      :توضیحات{' '}
-                    </label>
-                    <textarea
-                      className="w-full rounded-md border-2 border-slate-300 h-40 text-right p-1 text-sm "
-                      id="description"
-                      {...EditForm.register('description')}
-                    />
-                    {EditForm.formState.errors.description && (
-                      <p className="text-red-500">
-                        {EditForm.formState.errors.description.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="border-2 border-slate-500 rounded-md border-dashed w-full mt-6 flex items-center  ">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    name="images"
-                    label=":تصویر "
-                    placeholder="Enter images"
-                    register={EditForm.register}
-                    required={false}
-                  />
-                </div>
-                <div className="col-span-4 w-full grid grid-cols-2 justify-items-center pt-2">
-                  <button
-                    type="submit"
-                    className=" border border-green-600 rounded-md w-36 flex justify-center items-center h-10 bg-green-500 hover:bg-green-400 text-white font-semibold"
-                  >
-                    ذخیره
-                  </button>
-                  <button
-                    onClick={() => setEditId(null)}
-                    type="submit"
-                    className=" border border-red-600 rounded-md w-36 flex justify-center items-center h-10 bg-red-500 hover:bg-red-400 text-white font-semibold"
-                  >
-                    بستن
-                  </button>
-                </div>
-              </form>
-            </section>
-          )}
           <section className="flex flex-row justify-around">
             <Button
               classname="border-blue-500 w-36 justify-center m-5"
@@ -348,7 +298,9 @@ const AdminPanel: React.FC = () => {
 
                       {/* شناسه کاربر */}
                       <td className="p-3  border border-gray-300 text-xs">
-                        {o.user}
+                        {information &&
+                          information.data.users.find(e => e._id === o.user)
+                            ?.firstname}
                       </td>
 
                       {/* تاریخ ایجاد */}

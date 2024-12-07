@@ -12,10 +12,28 @@ import Hamburger from '@/components/Hamburger';
 import { getUserData } from '@/apis/UserData';
 import toast from 'react-hot-toast';
 
-const Navbar: React.FC = async () => {
-  const Information = await getUserData().then(data => {
-    return { name: data?.data.user.firstname, role: data?.data.user.role };
-  });
+const Navbar: React.FC = () => {
+  const [information, setInformation] = React.useState<{
+    name: string;
+    role: string;
+  } | null>(null);
+
+  React.useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const data = await getUserData();
+        data &&
+          setInformation({
+            name: data?.data.user.firstname,
+            role: data?.data.user.role,
+          });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
   return (
     <main className="container mx-auto flex flex-col justify-center p-4">
       <section className="flex flex-row justify-between items-center w-full">
@@ -50,9 +68,9 @@ const Navbar: React.FC = async () => {
                 >
                   <Button
                     classnamefoText="marquee-text text-sm text-nowrap"
-                    text={Information.name as any}
+                    text={information?.name as any}
                     img={
-                      Information.role === 'USER' ? (
+                      information?.role === 'USER' ? (
                         <FaUser title="User panel" />
                       ) : (
                         <MdAdminPanelSettings title="Admin panel" size={20} />

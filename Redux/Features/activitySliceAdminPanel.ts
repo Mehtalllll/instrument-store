@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-type ActivityState = 'سفارشات' | 'مدیریت محصولات';
+type ActivityState = 'سفارشات' | 'کالاها' | 'موجودی و قیمت ها';
 
-const initialState = 'سفارشات';
+const initialState = 'کالاها';
 
 const activitySliceAdminPanel = createSlice({
   name: 'activity',

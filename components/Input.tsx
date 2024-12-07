@@ -4,7 +4,7 @@ import { FieldError, UseFormRegister } from 'react-hook-form';
 
 interface InputProps {
   name: string; // نام فیلد
-  label: string; // برچسب نمایش داده شده
+  label?: string; // برچسب نمایش داده شده
   type?: 'text' | 'email' | 'password' | 'number' | 'file'; // نوع ورودی
   placeholder?: string; // متن راهنما
   register: UseFormRegister<any>; // RHF register function

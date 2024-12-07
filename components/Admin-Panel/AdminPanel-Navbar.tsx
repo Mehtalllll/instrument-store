@@ -1,7 +1,7 @@
 'use client';
 
 import { getUserData } from '@/apis/UserData';
-import Button from './Button';
+import Button from '../Button';
 import { MdAdminPanelSettings } from 'react-icons/md';
 import { activityAdminPanelActions } from '@/Redux/Features/activitySliceAdminPanel';
 
@@ -27,7 +27,7 @@ const AdminNavbar = () => {
   }, []);
 
   return (
-    <main className="container mx-auto bg-slate-300 p-4">
+    <main className="container mx-auto bg-slate-300 px-3 py-2">
       <section className="flex flex-row justify-between items-center w-full">
         <Link href={'/'}>
           <div className="gap-x-4 flex flex-row justify-center items-center ">
@@ -37,17 +37,6 @@ const AdminNavbar = () => {
             </p>
           </div>
         </Link>
-        <p className="font-semibold hover:underline cursor-pointer">
-          دسته بندی محصولات
-        </p>
-        <p
-          onClick={() =>
-            dispatch(activityAdminPanelActions.setActivity('مدیریت محصولات'))
-          }
-          className="font-semibold hover:underline cursor-pointer"
-        >
-          مدیریت محصولات
-        </p>
         <p
           onClick={() =>
             dispatch(activityAdminPanelActions.setActivity('سفارشات'))
@@ -55,6 +44,22 @@ const AdminNavbar = () => {
           className="font-semibold hover:underline cursor-pointer"
         >
           سفارشات
+        </p>
+        <p
+          onClick={() =>
+            dispatch(activityAdminPanelActions.setActivity('موجودی و قیمت ها'))
+          }
+          className="font-semibold hover:underline cursor-pointer"
+        >
+          موجودی و قیمت ها
+        </p>
+        <p
+          onClick={() =>
+            dispatch(activityAdminPanelActions.setActivity('کالاها'))
+          }
+          className="font-semibold hover:underline cursor-pointer"
+        >
+          کالاها
         </p>
         <div className="w-36 overflow-hidden">
           <Button
