@@ -1,9 +1,12 @@
+import { getSession } from './Session-management';
+
 export const fetchDelproduct = async (id: string) => {
   try {
     const response = await fetch(`http://localhost:8000/api/products/${id}`, {
-      method: 'GET',
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${getSession('accessToken')}`,
       },
     });
 

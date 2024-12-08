@@ -11,7 +11,7 @@ interface InputProps {
   required?: boolean; // آیا فیلد اجباری است
   error?: FieldError; // خطاهای مرتبط با این فیلد
   accept?: string | undefined;
-  onChange?: React.ChangeEventHandler<HTMLInputElement>; // پراپس onChange جدید
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
 }
 const Input: React.FC<InputProps> = ({
   name,
@@ -25,7 +25,7 @@ const Input: React.FC<InputProps> = ({
   onChange,
 }) => {
   return (
-    <div className="input-wrapper text-slate-800 px-6 gap-y-2 flex flex-col">
+    <div className="input-wrapper text-xs sm:text-base text-slate-800 px-6 gap-y-2 flex flex-col">
       <label className="font-medium text-right text-slate-600" htmlFor={name}>
         {label}
       </label>

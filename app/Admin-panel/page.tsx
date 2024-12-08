@@ -118,7 +118,7 @@ const AdminPanel: React.FC = () => {
   console.log(information);
 
   return (
-    <main className="container mx-auto  ">
+    <main className="container mx-auto ">
       {activity === 'کالاها' && <ProductContainer />}
       {activity === 'موجودی و قیمت ها' && (
         <div className="p-5 flex flex-col gap-y-3">
