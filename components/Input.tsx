@@ -25,7 +25,7 @@ const Input: React.FC<InputProps> = ({
   onChange,
 }) => {
   return (
-    <div className="input-wrapper text-xs sm:text-base text-slate-800 px-6 gap-y-2 flex flex-col">
+    <div className="input-wrapper text-xs sm:text-base text-slate-800  gap-y-2 flex flex-col">
       <label className="font-medium text-right text-slate-600" htmlFor={name}>
         {label}
       </label>
@@ -36,7 +36,7 @@ const Input: React.FC<InputProps> = ({
         placeholder={placeholder}
         {...register(name, { required })}
         onChange={onChange}
-        className={`border border-slate-300  w-full max-w-[450px] rounded-md p-1 input ${error ? 'input-error' : ''}`}
+        className={`border border-slate-300 text-xs font-semibold  w-full max-w-[450px] rounded-md p-1 input ${error ? 'input-error' : ''}`}
       />
       {error && (
         <p className="text-xs font-semibold text-red-400 pr-1 text-right">

@@ -20,6 +20,7 @@ import { fetchAllproduct } from '@/apis/AllProduct';
 import toast from 'react-hot-toast';
 import { ClassNames } from '@/utils/classname-join';
 import { GetAddProduct } from '@/apis/AddProduct';
+import { setSession } from '@/apis/Session-management';
 
 const ProductContainer: React.FC = () => {
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
@@ -234,7 +235,7 @@ const ProductContainer: React.FC = () => {
                       <img
                         src={`http://localhost:8000/images/products/images/${p.images[0]}`}
                         alt={p.images[0]}
-                        className="mx-auto rounded-md shadow-sm w-14"
+                        className="mx-auto rounded-md shadow-sm w-12"
                       />
                     </td>
                   </tr>
@@ -243,9 +244,11 @@ const ProductContainer: React.FC = () => {
           </table>
           <section className="w-full max-w-[900px] flex flex-row justify-around">
             <Button
-              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center m-3"
+              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
               text="صفحه قبل"
-              onClick={() => setPageproduct(Number(Pageproduct) - 1)}
+              onClick={() =>
+                Pageproduct > 1 && setPageproduct(Number(Pageproduct) - 1)
+              }
             />
             <div className="w-full max-w-[100px] flex flex-row gap-x-3 justify-center items-center cursor-pointer ">
               {totalpagesArrayForProduct.map(p => (
@@ -256,7 +259,7 @@ const ProductContainer: React.FC = () => {
                     )}
                   >
                     <p
-                      className="hover:underline hidden sm:block"
+                      className="text-xs font-semibold sm:text-sm hover:underline hidden sm:block"
                       onClick={() => {
                         setPageproduct(p);
                       }}
@@ -271,9 +274,12 @@ const ProductContainer: React.FC = () => {
               </p>
             </div>
             <Button
-              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center m-3"
+              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
               text="صفحه بعد"
-              onClick={() => setPageproduct(Number(Pageproduct) + 1)}
+              onClick={() =>
+                Pageproduct < totalpagesArrayForProduct.length &&
+                setPageproduct(Number(Pageproduct) + 1)
+              }
             />
           </section>
         </section>
@@ -409,7 +415,7 @@ const ProductContainer: React.FC = () => {
                   required={false}
                   error={EditForm.formState.errors.name}
                 />
-                <div className="w-full text-right px-6 text-xs sm:text-sm">
+                <div className="w-full text-right  text-xs sm:text-sm">
                   <label className="text-slate-700 font-semibold">
                     دسته بندی
                   </label>
@@ -460,7 +466,7 @@ const ProductContainer: React.FC = () => {
                   )}
                 </div>
 
-                <div className="col-span-4 w-full grid grid-cols-2 justify-items-center pt-2">
+                <div className="col-span-4 w-full grid grid-cols-2 sm:gap-x-5 justify-items-center pt-2">
                   <button
                     type="submit"
                     className=" border border-green-600 rounded-md text-xs sm:text-sm w-20 h-7 sm:w-36 flex justify-center items-center sm:h-10 bg-green-500 hover:bg-green-400 text-white font-semibold"

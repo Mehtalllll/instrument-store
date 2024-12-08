@@ -2,6 +2,7 @@
 import { fetchAllOrders } from '@/apis/AllOrders';
 import { fetchAllproduct } from '@/apis/AllProduct';
 import { getAllUserData } from '@/apis/AllUserData';
+import PriceAndQuantity from '@/components/Admin-Panel/PriceAndQuantity';
 import ProductContainer from '@/components/Admin-Panel/product';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
@@ -120,139 +121,7 @@ const AdminPanel: React.FC = () => {
   return (
     <main className="container mx-auto ">
       {activity === 'کالاها' && <ProductContainer />}
-      {activity === 'موجودی و قیمت ها' && (
-        <div className="p-5 flex flex-col gap-y-3">
-          <section className="w-full max-w-[1000px] mx-auto bg-white rounded-md shadow-md  h-fit p-4">
-            <div className="flex justify-between p-2">
-              <Button
-                text="افزودن کالا"
-                classname="border-green-300 text-white w-36 flex justify-center font-semibold bg-green-500"
-              />
-              <p className="text-xl font-bold">مدیریت کالا</p>
-            </div>
-            <form onSubmit={EditForm.handleSubmit(onSubmitEditForPrice)}>
-              <table className="w-full max-w-[1000px] mx-auto border-collapse border border-gray-300 text-center">
-                <thead className="bg-gray-100 text-gray-800">
-                  <tr className="border-b border-gray-300">
-                    <th className="p-3 font-medium">عملیات</th>
-                    <th className="p-3 font-medium">موجودی</th>
-                    <th className="p-3 font-medium">قیمت</th>
-                    <th className="p-3 font-medium">کالا</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Allproduct &&
-                    filteredData.map((p, index) => (
-                      <tr
-                        key={p._id}
-                        className={`${
-                          index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                        } hover:bg-gray-50 `}
-                      >
-                        <td className="p3 w-1/5">
-                          <div className="flex gap-2 justify-center">
-                            <Button
-                              classname="w-20 border border-blue-500 flex justify-center hover:bg-blue-500 hover:text-white"
-                              text="ذخیره"
-                              onClick={() => setEditePriceAndQuantity(null)}
-                            />
-                          </div>
-                        </td>
-
-                        <td
-                          className={ClassNames(
-                            'p3 text-gray-800 font-semibold w-1/5',
-                          )}
-                        >
-                          <div
-                            className={ClassNames(
-                              'w-full max-w-44 mx-auto ',
-                              `${EditePriceAndQuantity == p._id ? 'block' : 'hidden'}`,
-                            )}
-                          >
-                            <Input
-                              name="quantity"
-                              placeholder="Enter quantity"
-                              register={EditForm.register}
-                              required={false}
-                              error={EditForm.formState.errors.quantity}
-                            />
-                          </div>
-                          <div
-                            onClick={() => setEditePriceAndQuantity(p._id)}
-                            className={ClassNames(
-                              'p-3 text-gray-800 font-semibold',
-                              `${EditePriceAndQuantity == p._id ? 'hidden' : 'block'}`,
-                            )}
-                          >
-                            {p.quantity}
-                          </div>
-                        </td>
-                        <td
-                          className={ClassNames(
-                            'p-3 text-gray-800 font-semibold w-1/5 ',
-                          )}
-                        >
-                          <div
-                            className={ClassNames(
-                              'w-full max-w-44 flex justify-center mx-auto',
-                              `${EditePriceAndQuantity == p._id ? 'block' : 'hidden'}`,
-                            )}
-                          >
-                            <Input
-                              name="price"
-                              placeholder="Enter price"
-                              register={EditForm.register}
-                              required={false}
-                              error={EditForm.formState.errors.price}
-                            />
-                          </div>
-                          <div
-                            onClick={() => setEditePriceAndQuantity(p._id)}
-                            className={ClassNames(
-                              'p-3 text-gray-800 font-semibold',
-                              `${EditePriceAndQuantity == p._id ? 'hidden' : 'block'}`,
-                            )}
-                          >
-                            {p.price}
-                          </div>
-                        </td>
-                        <td className="py-3 px-1 text-gray-800 font-semibold w-2/5">
-                          {p.name}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </form>
-          </section>
-
-          <section className="flex flex-row justify-around">
-            <Button
-              classname="border-blue-500 w-36 justify-center m-5"
-              text="صفحه قبل"
-              onClick={() => setPageproduct(Number(Pageproduct) - 1)}
-            />
-            <div className="flex flex-row gap-x-5 justify-center items-center cursor-pointer ">
-              {totalpagesArrayForProduct.map(p => (
-                <p
-                  className="hover:underline"
-                  onClick={() => {
-                    setPageproduct(p);
-                  }}
-                >
-                  {p}
-                </p>
-              ))}
-            </div>
-            <Button
-              classname="border-blue-500 w-36 justify-center m-5"
-              text="صفحه بعد"
-              onClick={() => setPageproduct(Number(Pageproduct) + 1)}
-            />
-          </section>
-        </div>
-      )}
+      {activity === 'موجودی و قیمت ها' && <PriceAndQuantity />}
 
       {activity === 'سفارشات' && (
         <div className="p-5 flex flex-col gap-y-3">
