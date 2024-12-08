@@ -34,7 +34,7 @@ const Button: React.FC<IButton> = ({
         )}
         <p
           className={ClassNames(
-            'w-3/6  text-sm h-full flex items-center justify-center',
+            'w-3/6   h-full flex items-center justify-center',
             `${classnamefoText}`,
           )}
         >
