@@ -5,11 +5,11 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GetEditeProduct } from '@/apis/EditProduct';
 import { fetchAllproduct } from '@/apis/AllProduct';
-import Button from '../Button';
-import Input from '../Input';
+import Button from '../Global/Button';
+import Input from '../Global/Input';
 import toast from 'react-hot-toast';
 import { ClassNames } from '@/utils/classname-join';
-import ModalForEdite from '../Edite-modal';
+import ModalForEdite from '../Global/Edite-modal';
 
 const PriceAndQuantity: React.FC = () => {
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
@@ -82,7 +82,9 @@ const PriceAndQuantity: React.FC = () => {
       <div className="p-4 flex flex-col gap-y-3">
         <section className="w-full max-w-[1000px] mx-auto bg-white rounded-md shadow-md h-fit py-2 px-3">
           <div className="flex justify-end py-2 ">
-            <p className="text-sm font-bold sm:text-base">مدیریت کالا</p>
+            <p className="text-sm font-bold text-slate-700 sm:text-base">
+              مدیریت موجودی و قیمت ها
+            </p>
           </div>
           <form onSubmit={EditForm.handleSubmit(onSubmitEditForList)}>
             <table className="w-full max-w-[1000px] mx-auto border-collapse border border-gray-300 text-center">
@@ -109,7 +111,7 @@ const PriceAndQuantity: React.FC = () => {
                       <td className="p-2">
                         <div className="flex flex-col sm:flex-row gap-2 justify-center">
                           <Button
-                            classname="w-14 h-6 text-xs sm:font-semibold sm:w-20 sm:h-8  border border-teal-500 flex justify-center hover:bg-teal-500 hover:text-white"
+                            classname="w-14 h-6 text-xs text-slate-700 sm:font-semibold sm:w-20 sm:h-8  border border-teal-500 flex justify-center hover:bg-teal-500 hover:text-white"
                             text="ذخیره"
                             onClick={() => setEditId(p._id)}
                           />
@@ -162,7 +164,7 @@ const PriceAndQuantity: React.FC = () => {
           </form>
           <section className="w-full max-w-[900px] flex flex-row justify-around ">
             <Button
-              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
+              classname="border-teal-500 text-xs sm:text-sm text-slate-700 font-semibold text-nowrap h-7 w-20 justify-center my-3"
               text="صفحه قبل"
               onClick={() =>
                 Pageproduct > 1 && setPageproduct(Number(Pageproduct) - 1)
@@ -177,7 +179,7 @@ const PriceAndQuantity: React.FC = () => {
                     )}
                   >
                     <p
-                      className="text-xs font-semibold sm:text-sm hover:underline hidden sm:block"
+                      className="text-xs font-semibold text-slate-700 sm:text-sm hover:underline hidden sm:block"
                       onClick={() => {
                         setPageproduct(p);
                       }}
@@ -192,7 +194,7 @@ const PriceAndQuantity: React.FC = () => {
               </p>
             </div>
             <Button
-              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
+              classname="border-teal-500 text-xs sm:text-sm text-slate-700 font-semibold text-nowrap h-7 w-20 justify-center my-3"
               text="صفحه بعد"
               onClick={() =>
                 Pageproduct < totalpagesArrayForProduct.length &&

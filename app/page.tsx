@@ -1,6 +1,6 @@
 'use client';
-import Example from '@/components/Edite-modal';
-import Navbar from '@/components/Navbar';
+import Example from '@/components/Global/Edite-modal';
+import Navbar from '@/components/Global/Navbar';
 import React from 'react';
 
 export default function Home() {
@@ -8,8 +8,6 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <button onClick={() => setopen(!open)}>dasda</button>
-      {open && <Example />}
     </>
   );
 }

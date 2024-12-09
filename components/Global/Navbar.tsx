@@ -6,9 +6,9 @@ import Link from 'next/link';
 import React from 'react';
 import { MdAdminPanelSettings } from 'react-icons/md';
 import { IoLogOut } from 'react-icons/io5';
-import Button from '@/components/Button';
+import Button from '@/components/Global/Button';
 import { delSession, getSession } from '@/apis/Session-management';
-import Hamburger from '@/components/Hamburger';
+import Hamburger from '@/components/Global/Hamburger';
 import { getUserData } from '@/apis/UserData';
 import toast from 'react-hot-toast';
 

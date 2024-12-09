@@ -1,7 +1,7 @@
 'use client';
 
 import { getUserData } from '@/apis/UserData';
-import Button from '../Button';
+import Button from '../Global/Button';
 import { MdAdminPanelSettings } from 'react-icons/md';
 import { activityAdminPanelActions } from '@/Redux/Features/activitySliceAdminPanel';
 
