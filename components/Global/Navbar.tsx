@@ -37,16 +37,18 @@ const Navbar: React.FC = () => {
   return (
     <main className="container mx-auto flex flex-col justify-center p-4">
       <section className="flex flex-row justify-between items-center w-full">
-        <div className=" sm:gap-x-4 flex flex-row justify-center items-center ">
-          <img
-            src="./music-shop.png"
-            alt="Meh store icon"
-            className=" w-full max-w-10 sm:max-w-14"
-          />
-          <p className="text-2xl ml-2 sm:text-3xl  font-bold font-mono text-slate-600 pt-2">
-            Meh Store
-          </p>
-        </div>
+        <Link href={'./'}>
+          <div className=" sm:gap-x-4 flex flex-row justify-center items-center ">
+            <img
+              src="./music-shop.png"
+              alt="Meh store icon"
+              className=" w-full max-w-10 sm:max-w-14"
+            />
+            <p className="text-2xl ml-2 sm:text-3xl  font-bold font-mono text-slate-600 pt-2">
+              Meh Store
+            </p>
+          </div>
+        </Link>
         <input
           type="text"
           placeholder="جستجو"
