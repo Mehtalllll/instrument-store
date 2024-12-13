@@ -56,7 +56,7 @@ const PriceAndQuantity: React.FC = () => {
 
   React.useEffect(() => {
     const loadAllproduct = async (Pageproduct: number) => {
-      const result = await fetchAllproduct(Pageproduct);
+      const result = await fetchAllproduct({ page: Pageproduct });
       setAllproduct(result);
     };
 

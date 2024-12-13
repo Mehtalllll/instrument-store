@@ -84,7 +84,9 @@ const AdminPanel: React.FC = () => {
 
   React.useEffect(() => {
     const loadAllproduct = async (Pageproduct: number) => {
-      const result: IProductsList = await fetchAllproduct(Pageproduct);
+      const result: IProductsList = await fetchAllproduct({
+        page: Pageproduct,
+      });
       setAllproduct(result);
     };
 

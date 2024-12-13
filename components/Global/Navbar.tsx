@@ -37,23 +37,27 @@ const Navbar: React.FC = () => {
   return (
     <main className="container mx-auto flex flex-col justify-center p-4">
       <section className="flex flex-row justify-between items-center w-full">
-        <div className=" gap-x-4 flex flex-row justify-center items-center ">
-          <img src="./music-shop.png" alt="Meh store icon" className="w-14" />
-          <p className="text-3xl font-bold font-mono text-slate-600 pt-2">
+        <div className=" sm:gap-x-4 flex flex-row justify-center items-center ">
+          <img
+            src="./music-shop.png"
+            alt="Meh store icon"
+            className=" w-full max-w-10 sm:max-w-14"
+          />
+          <p className="text-2xl ml-2 sm:text-3xl  font-bold font-mono text-slate-600 pt-2">
             Meh Store
           </p>
         </div>
         <input
           type="text"
           placeholder="جستجو"
-          className="placeholder:text-right w-[500px] mx-10 rounded-md border-2 px-2 pb-1 h-10 border-slate-300"
+          className="placeholder:text-right hidden sm:block w-full max-w-[500px] mx-4 sm:mx-10 rounded-md border-2 px-2 pb-1 h-10 border-slate-300"
         />
-        <div className="flex flex-row gap-x-2">
+        <div className="flex flex-row items-center justify-center gap-x-2">
           {getSession('UserId') && (
             <div className="flex flex-row gap-x-2">
               <Link href={'/'}>
                 <div
-                  className="w-10 h-10 flex items-center justify-center text-white bg-blue-400 rounded-md cursor-pointer hover:bg-blue-500"
+                  className="w-10 h-10 hidden sm:flex items-center justify-center text-white bg-blue-400 rounded-md cursor-pointer hover:bg-blue-500"
                   title="LogOut"
                   onClick={() => {
                     delSession('UserId'), toast.success('خروج موفقیت آمیز');
@@ -61,50 +65,87 @@ const Navbar: React.FC = () => {
                 >
                   <IoLogOut size={22} />
                 </div>
+                <div className="sm:hidden text-blue-500">
+                  <IoLogOut size={25} title="LogOut" />
+                </div>
               </Link>
-              <div className="w-36 overflow-hidden">
+              <div className="max-w-36 overflow-hidden">
                 <Link
                   href={`${getSession('UserRole') === 'ADMIN' ? 'Admin-panel' : 'User-panel'}`}
                 >
-                  <Button
-                    classnamefoText="marquee-text text-sm text-nowrap"
-                    text={information?.name as any}
-                    img={
-                      information?.role === 'USER' ? (
-                        <FaUser title="User panel" />
-                      ) : (
-                        <MdAdminPanelSettings title="Admin panel" size={20} />
-                      )
-                    }
-                    classname="text-sm font-semibold w-36 border-orange-500 text-orange-500"
-                    color="bg-orange-500"
-                  />
+                  <div className="text-orange-500 sm:hidden ">
+                    {information?.role === 'USER' ? (
+                      <FaUser title="User panel" size={25} />
+                    ) : (
+                      <MdAdminPanelSettings title="Admin panel" size={25} />
+                    )}
+                  </div>
+                  <div className="hidden sm:block">
+                    <Button
+                      classnamefoText="marquee-text text-sm text-nowrap"
+                      text={information?.name as any}
+                      img={
+                        information?.role === 'USER' ? (
+                          <FaUser title="User panel" />
+                        ) : (
+                          <MdAdminPanelSettings title="Admin panel" size={20} />
+                        )
+                      }
+                      classname="text-sm font-semibold w-36  border-orange-500 text-orange-500"
+                      color="bg-orange-500"
+                    />
+                  </div>
                 </Link>
+              </div>
+              <div className="sm:hidden text-green-500 flex justify-center items-center cursor-pointer ">
+                <FaCartShopping size={21} title="سبد خرید" />
               </div>
             </div>
           )}
           {!getSession('UserId') && (
             <Link href={'/Login-Singup'}>
-              <Button
-                text="ورود کاربران"
-                img={<FaUser />}
-                classname="text-sm font-semibold w-36 border-orange-500 text-orange-500"
-                color="bg-orange-500"
-              />
+              <div className="text-orange-500 sm:hidden">
+                <FaUser />
+              </div>
+              <div className="hidden sm:block">
+                <Button
+                  text="ورود کاربران"
+                  img={<FaUser />}
+                  classname="text-sm font-semibold w-36  border-orange-500 text-orange-500"
+                  color="bg-orange-500"
+                />
+              </div>
             </Link>
           )}
-
-          <Button
-            text="سبد خرید"
-            img={<FaCartShopping />}
-            number={0}
-            classname=" font-semibold border-green-500 text-green-500"
-            color="bg-green-500"
-          />
+          <div className="sm:hidden text-green-500">
+            <FaCartShopping />
+          </div>
+          <div className="hidden sm:block" title="سبد خرید">
+            <Button
+              text="سبد خرید"
+              img={<FaCartShopping />}
+              number={0}
+              classname=" font-semibold w-36  border-green-500 text-green-500"
+              color="bg-green-500"
+            />
+          </div>
         </div>
       </section>
       <hr className="border border-slate-300 mt-3" />
-      <section className="flex flex-row pt-3  justify-between items-center w-full h-14">
+      <section className=" flex flex-row pt-3 justify-between  w-full h-14 sm:hidden">
+        <div className="flex items-center w-full">
+          <input
+            type="text"
+            placeholder="جستجو"
+            className="placeholder:text-right  block w-full mx-2 rounded-md border-2 px-2 pb-1 h-10 border-slate-300"
+          />
+        </div>
+
+        <Link href={'./products'}>
+          <Hamburger />
+        </Link>
+      </section>
+      <section className=" sm:flex flex-row pt-3 hidden justify-between items-center w-full h-14">
         <div className="w-full max-w-32 flex  items-center flex-col ">
           <p className="text-teal-500 font-semibold"> 09033250600</p>
           <p className="bg-slate-300 rounded-md text-xs font-semibold py-1 px-2">
@@ -119,7 +160,7 @@ const Navbar: React.FC = () => {
             تماس با ما
           </p>
           <p className="hover:underline cursor-pointer hover:text-teal-600">
-            فروش اقساطی{' '}
+            فروش اقساطی
           </p>
         </div>
         <div className="w-full max-w-fit h-10 ">

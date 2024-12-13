@@ -1,18 +1,16 @@
 'use client';
-import React from 'react';
-import Navbar from '@/components/Global/Navbar';
-import HeroSection from '@/components/Home/heroImage';
-import Footer from '@/components/Home/Footer';
 import { fetchAllproduct } from '@/apis/AllProduct';
-import { IProductsList } from '@/types/Product';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/Redux/store';
-import Link from 'next/link';
-import ProductCard from '@/components/Home/ProductCard';
 import Button from '@/components/Global/Button';
+import Navbar from '@/components/Global/Navbar';
+import ProductCard from '@/components/Home/ProductCard';
+import { RootState } from '@/Redux/store';
+import { IProductsList } from '@/types/Product';
 import { ClassNames } from '@/utils/classname-join';
+import Link from 'next/link';
+import React from 'react';
+import { useSelector } from 'react-redux';
 
-export default function Home() {
+const Products: React.FC = () => {
   const [Allproduct, setAllproduct] = React.useState<IProductsList>();
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
 
@@ -39,11 +37,10 @@ export default function Home() {
 
     loadAllproduct(Pageproduct);
   }, [Pageproduct, CategorieId, subCategorieId]);
+
+  console.log(Allproduct);
   return (
     <>
-      <Navbar />
-      <HeroSection />
-
       <section className="w-full p-3 ">
         <p className="p-4 text-xl font-semibold text-right text-slate-700">
           لیست محصولات
@@ -106,7 +103,7 @@ export default function Home() {
           </section>
         </div>
       </section>
-      <Footer />
     </>
   );
-}
+};
+export default Products;

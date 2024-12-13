@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.noscrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .marquee-text {
   display: flex;
   align-items: center;
