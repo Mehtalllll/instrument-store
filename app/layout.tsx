@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import ToasterComponent from '@/components/ToasterComponent';
+import ToasterComponent from '@/components/Global/ToasterComponent';
 import { Provider } from 'react-redux';
 import Mystore from '@/Redux/store';
 import ReduxProvider from '@/Provider/ReduxProvider';

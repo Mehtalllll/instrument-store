@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 
-import Input from '@/components/Input';
+import Input from '@/components/Global/Input';
 import { ClassNames } from '@/utils/classname-join';
 import { getLoginReq } from '@/apis/Login';
 import { getSingupReq } from '@/apis/Singup';

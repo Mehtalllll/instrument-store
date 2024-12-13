@@ -1,7 +1,7 @@
 'use client';
 import { z } from 'zod';
 import React from 'react';
-import ModalForEdite from '../Edite-modal';
+import ModalForEdite from '../Global/Edite-modal';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
@@ -14,13 +14,12 @@ import { IProductsList } from '@/types/Product';
 import { IRescategories } from '@/types/categories';
 import { IRessubcategories } from '@/types/subcategories';
 
-import Input from '../Input';
-import Button from '../Button';
+import Input from '../Global/Input';
+import Button from '../Global/Button';
 import { fetchAllproduct } from '@/apis/AllProduct';
 import toast from 'react-hot-toast';
 import { ClassNames } from '@/utils/classname-join';
 import { GetAddProduct } from '@/apis/AddProduct';
-import { setSession } from '@/apis/Session-management';
 
 const ProductContainer: React.FC = () => {
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
@@ -35,17 +34,6 @@ const ProductContainer: React.FC = () => {
   for (let i = 1; i <= Number(Allproduct?.total_pages); i++) {
     totalpagesArrayForProduct.push(i);
   }
-
-  //   const filteredData = React.useMemo(() => {
-  //     if (!Allproduct) return [];
-  //     return Allproduct.data.products.filter(product => {
-  //       const matchesName =
-  //         filters.name &&
-  //         product.name.toLowerCase().includes(filters.name.toLowerCase());
-
-  //       return matchesName;
-  //     });
-  //   }, [Allproduct, filters]);
 
   const EditSchema = z.object({
     name: z.string().min(1, 'نام محصول الزامی است'),
@@ -124,7 +112,9 @@ const ProductContainer: React.FC = () => {
 
   React.useEffect(() => {
     const loadAllproduct = async (Pageproduct: number) => {
-      const result: IProductsList = await fetchAllproduct(Pageproduct);
+      const result: IProductsList = await fetchAllproduct({
+        page: Pageproduct,
+      });
       setAllproduct(result);
     };
 
@@ -172,7 +162,9 @@ const ProductContainer: React.FC = () => {
                 'sm:w-28 sm:h-8 lg:w-36 sm:text-sm text-nowrap',
               )}
             />
-            <p className="text-sm font-bold sm:text-base">مدیریت کالا</p>
+            <p className="text-sm font-bold text-slate-700 sm:text-base">
+              مدیریت کالا
+            </p>
           </div>
           <table className="w-full max-w-[1000px] mx-auto border-collapse border border-gray-300 text-center">
             <thead className="bg-gray-100 text-gray-800">
@@ -200,7 +192,7 @@ const ProductContainer: React.FC = () => {
                     <td className="p-2">
                       <div className="flex flex-col sm:flex-row gap-2 justify-center">
                         <Button
-                          classname="w-14 h-6 text-xs sm:font-semibold sm:w-20 sm:h-8  border border-teal-500 flex justify-center hover:bg-teal-500 hover:text-white"
+                          classname="w-14 h-6 text-xs text-slate-700 sm:font-semibold sm:w-20 sm:h-8  border border-teal-500 flex justify-center hover:bg-teal-500 hover:text-white"
                           text="ویرایش"
                           onClick={() => setEditId(p._id)}
                         />
@@ -208,7 +200,7 @@ const ProductContainer: React.FC = () => {
                           onClick={() => {
                             return fetchDelproduct(p._id), setDelREf(!DelREf);
                           }}
-                          classname="w-14 h-6 text-xs sm:font-semibold sm:w-20 sm:h-8 border border-red-500 flex justify-center hover:bg-red-500 hover:text-white"
+                          classname="w-14 h-6 text-xs text-slate-700 sm:font-semibold sm:w-20 sm:h-8 border border-red-500 flex justify-center hover:bg-red-500 hover:text-white"
                           text="حذف"
                         />
                       </div>
@@ -244,7 +236,7 @@ const ProductContainer: React.FC = () => {
           </table>
           <section className="w-full max-w-[900px] flex flex-row justify-around">
             <Button
-              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
+              classname="border-teal-500 text-xs text-slate-700 sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
               text="صفحه قبل"
               onClick={() =>
                 Pageproduct > 1 && setPageproduct(Number(Pageproduct) - 1)
@@ -259,7 +251,7 @@ const ProductContainer: React.FC = () => {
                     )}
                   >
                     <p
-                      className="text-xs font-semibold sm:text-sm hover:underline hidden sm:block"
+                      className="text-xs font-semibold text-slate-700 sm:text-sm hover:underline hidden sm:block"
                       onClick={() => {
                         setPageproduct(p);
                       }}
@@ -269,12 +261,12 @@ const ProductContainer: React.FC = () => {
                   </div>
                 </>
               ))}
-              <p className="text-xs font-bold absolute text-slate-700 sm:hidden">
+              <p className="text-xs font-bold absolute  text-slate-700 sm:hidden">
                 {Pageproduct}
               </p>
             </div>
             <Button
-              classname="border-teal-500 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
+              classname="border-teal-500 text-slate-700 text-xs sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
               text="صفحه بعد"
               onClick={() =>
                 Pageproduct < totalpagesArrayForProduct.length &&
@@ -380,7 +372,7 @@ const ProductContainer: React.FC = () => {
                   )}
                 </div>
 
-                <div className="col-span-4 w-full grid grid-cols-2 justify-items-center pt-2">
+                <div className="col-span-4 w-full gap-x-4 grid grid-cols-2 justify-items-center pt-2">
                   <button
                     type="submit"
                     className=" border border-green-600 rounded-md text-xs sm:text-sm w-20 h-7 sm:w-36 flex justify-center items-center sm:h-10 bg-green-500 hover:bg-green-400 text-white font-semibold"
