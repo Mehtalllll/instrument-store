@@ -5,36 +5,46 @@ import { IResUserlist } from '@/types/Alluser';
 import { ClassNames } from '@/utils/classname-join';
 import { fetchAllOrders } from '@/apis/AllOrders';
 import { getAllUserData } from '@/apis/AllUserData';
+import ModalForEdite from '../Global/Edite-modal';
+import { GetEditeorder } from '@/apis/EditOrder';
+import { useQuery, useQueryClient } from 'react-query';
+import toast from 'react-hot-toast';
 
 const OrderForAdmin: React.FC = () => {
-  const [AllOrders, setAllOrders] = React.useState<IResOrders>();
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
+  const [orderId, setorderId] = React.useState<string | null>(null);
   const [information, setInformation] = React.useState<IResUserlist>();
   const [sortColumn, setSortColumn] = React.useState<string | null>(null);
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>(
     'asc',
   );
-  const [deliveryStatus, setdeliveryStatus] = React.useState<{
-    all: boolean;
-    delivered: boolean;
-    Notdelivered: boolean;
-  }>({ delivered: false, Notdelivered: false, all: true });
+  const [deliveryStatus, setdeliveryStatus] = React.useState<
+    'all' | 'delivered' | 'Notdelivered'
+  >('all');
 
-  const filteredData = React.useMemo(() => {
-    if (!AllOrders || !AllOrders.data || !AllOrders.data.orders) return [];
-    return AllOrders.data.orders.filter(product => {
-      if (deliveryStatus.all) {
-        return true;
-      }
-      if (deliveryStatus.delivered && product.deliveryStatus) {
-        return true;
-      }
-      if (deliveryStatus.Notdelivered && !product.deliveryStatus) {
-        return true;
-      }
-      return false;
-    });
-  }, [AllOrders, deliveryStatus]);
+  const AllOrders = useQuery(
+    ['Orders', Pageproduct, orderId, deliveryStatus],
+    () =>
+      fetchAllOrders(
+        Pageproduct,
+        deliveryStatus === 'all'
+          ? null
+          : deliveryStatus === 'delivered'
+            ? true
+            : false,
+      ),
+    {
+      keepPreviousData: true,
+      staleTime: 5000,
+      onError: error => {
+        console.error('Error fetching orders:', error);
+      },
+    },
+  );
+
+  React.useEffect(() => {
+    setPageproduct(1); // بازنشانی شماره صفحه به ۱
+  }, [deliveryStatus]); // وقتی deliveryStatus تغییر کند
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -44,11 +54,25 @@ const OrderForAdmin: React.FC = () => {
       setSortDirection('asc');
     }
   };
+  const queryClient = useQueryClient();
+  const handeldeliveryStatus = async (deliveryStatus: boolean, id: string) => {
+    try {
+      await GetEditeorder(deliveryStatus, id); // ارسال وضعیت به سرور
+
+      queryClient.invalidateQueries(['Orders']);
+      setorderId(null);
+      deliveryStatus
+        ? toast.success('وضعیت به تحویل شده تغییر کرد')
+        : toast.success('وضعیت به تحویل نشده تغییر کرد');
+    } catch (error) {
+      console.error('Error updating delivery status:', error);
+    }
+  };
 
   const sortedData = React.useMemo(() => {
-    if (!filteredData || !sortColumn) return filteredData;
+    if (!AllOrders || !sortColumn) return AllOrders;
 
-    return [...filteredData].sort((a, b) => {
+    return AllOrders.data?.data.orders.sort((a, b) => {
       const valueA = a[sortColumn as keyof typeof a];
       const valueB = b[sortColumn as keyof typeof b];
 
@@ -68,21 +92,10 @@ const OrderForAdmin: React.FC = () => {
     return jalaliDate;
   }
 
-  const isoDate = '2024-12-05T01:10:23.486Z';
-  const jalaliDate = convertToJalali(isoDate);
-
   const totalpagesArrayForProduct = [];
-  for (let i = 1; i <= Number(AllOrders?.total_pages); i++) {
+  for (let i = 1; i <= Number(AllOrders.data?.total_pages); i++) {
     totalpagesArrayForProduct.push(i);
   }
-
-  React.useEffect(() => {
-    const loadAllOrders = async (Pageproduct: number) => {
-      const resultorders: IResOrders = await fetchAllOrders(Pageproduct);
-      setAllOrders(resultorders);
-    };
-    loadAllOrders(Pageproduct);
-  }, [Pageproduct]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -93,6 +106,21 @@ const OrderForAdmin: React.FC = () => {
     fetchData();
   }, [Pageproduct]);
 
+  const maxVisiblePages = 5; // تعداد صفحات قابل نمایش در یک زمان
+
+  const visiblePages = React.useMemo(() => {
+    const total = Number(AllOrders.data?.total_pages) || 1;
+    const startPage = Math.max(
+      1,
+      Pageproduct - Math.floor(maxVisiblePages / 2),
+    );
+    const endPage = Math.min(total, startPage + maxVisiblePages - 1);
+
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i,
+    );
+  }, [Pageproduct, AllOrders.data?.total_pages]);
   return (
     <main className="pt-4">
       <section className="w-full max-w-[1000px] mx-auto bg-white rounded-md shadow-md  h-fit pt-2 px-4">
@@ -102,19 +130,15 @@ const OrderForAdmin: React.FC = () => {
               <input
                 type="checkbox"
                 id="all"
-                checked={deliveryStatus.all}
-                onChange={() =>
-                  setdeliveryStatus({
-                    all: true,
-                    delivered: false,
-                    Notdelivered: false,
-                  })
-                }
+                checked={deliveryStatus == 'all'}
+                onChange={() => setdeliveryStatus('all')}
               />
               <label
                 htmlFor="all"
                 className={`ml-2 cursor-pointer text-xs sm:text-sm font-semibold px-4  ${
-                  deliveryStatus.all ? 'text-teal-500 ' : 'text-slate-700 '
+                  deliveryStatus === 'all'
+                    ? 'text-teal-500 '
+                    : 'text-slate-700 '
                 }`}
               >
                 همه کالاها
@@ -125,19 +149,13 @@ const OrderForAdmin: React.FC = () => {
               <input
                 type="checkbox"
                 id="delivered"
-                checked={deliveryStatus.delivered}
-                onChange={() =>
-                  setdeliveryStatus({
-                    all: false,
-                    delivered: true,
-                    Notdelivered: false,
-                  })
-                }
+                checked={deliveryStatus == 'delivered'}
+                onChange={() => setdeliveryStatus('delivered')}
               />
               <label
                 htmlFor="delivered"
                 className={`ml-2 cursor-pointer text-xs sm:text-sm font-semibold px-4 py-2 ${
-                  deliveryStatus.delivered
+                  deliveryStatus == 'delivered'
                     ? 'text-teal-500 '
                     : 'text-slate-700 '
                 }`}
@@ -150,19 +168,13 @@ const OrderForAdmin: React.FC = () => {
               <input
                 type="checkbox"
                 id="notDelivered"
-                checked={deliveryStatus.Notdelivered}
-                onChange={() =>
-                  setdeliveryStatus({
-                    all: false,
-                    delivered: false,
-                    Notdelivered: true,
-                  })
-                }
+                checked={deliveryStatus == 'Notdelivered'}
+                onChange={() => setdeliveryStatus('Notdelivered')}
               />
               <label
                 htmlFor="notDelivered"
                 className={`ml-2 cursor-pointer text-xs sm:text-sm font-semibold px-4 py-2 ${
-                  deliveryStatus.Notdelivered
+                  deliveryStatus == 'Notdelivered'
                     ? 'text-teal-500 '
                     : 'text-slate-700 '
                 }`}
@@ -213,7 +225,7 @@ const OrderForAdmin: React.FC = () => {
           </thead>
 
           <tbody>
-            {sortedData.map((p, index) => (
+            {AllOrders.data?.data.orders.map((p, index) => (
               <tr
                 key={p._id}
                 className={`${
@@ -225,7 +237,9 @@ const OrderForAdmin: React.FC = () => {
                     <Button
                       classname="w-14 h-6 text-[9px] sm:text-xs   text-nowrap text-slate-700 font-semibold sm:w-20 sm:h-8  border border-teal-500 flex justify-center hover:bg-teal-500 hover:text-white"
                       text="برسی سفارش"
-                      onClick={() => {}}
+                      onClick={() => {
+                        setorderId(p._id);
+                      }}
                     />
                   </div>
                 </td>
@@ -246,14 +260,14 @@ const OrderForAdmin: React.FC = () => {
         </table>
         <section className="w-full max-w-[900px] flex flex-row justify-around">
           <Button
-            classname="border-teal-500 text-xs sm:text-sm font-semibold text-slate-700 text-nowrap h-7 w-20 justify-center my-3"
+            classname="border-teal-500 text-xs text-slate-700 sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
             text="صفحه قبل"
             onClick={() =>
               Pageproduct > 1 && setPageproduct(Number(Pageproduct) - 1)
             }
           />
           <div className="w-full max-w-[100px] flex flex-row gap-x-3 justify-center items-center cursor-pointer ">
-            {totalpagesArrayForProduct.map(p => (
+            {visiblePages.map(p => (
               <>
                 <div
                   className={ClassNames(
@@ -271,7 +285,7 @@ const OrderForAdmin: React.FC = () => {
                 </div>
               </>
             ))}
-            <p className="text-xs font-bold absolute text-slate-700 sm:hidden">
+            <p className="text-xs font-bold absolute  text-slate-700 sm:hidden">
               {Pageproduct}
             </p>
           </div>
@@ -285,6 +299,51 @@ const OrderForAdmin: React.FC = () => {
           />
         </section>
       </section>
+      {orderId !== null && (
+        <ModalForEdite>
+          {AllOrders.data?.data.orders
+            .filter(a => a._id == orderId)
+            .map(o => (
+              <section className="w-full flex flex-col gap-y-3">
+                <div className="text-slate-700 space-y-2 pb-4">
+                  <p className="font-semibold text-lg">
+                    وضعیت
+                    <span className="text-green-500">
+                      {o.deliveryStatus == true
+                        ? ' تحویل شده '
+                        : ' تحویل نشده '}
+                    </span>
+                    می باشد
+                  </p>
+                  <p>آیا می خواهید وضعیت را تغییر دهید؟</p>
+                </div>
+                <div className="col-span-4 w-full gap-x-4 grid grid-cols-2 justify-items-center pt-2">
+                  {o.deliveryStatus == true ? (
+                    <button
+                      onClick={() => handeldeliveryStatus(false, orderId)}
+                      className=" border border-orange-600 rounded-md text-xs sm:text-sm w-20 h-7 sm:w-36 flex justify-center items-center sm:h-10 bg-orange-500 hover:bg-orange-400 text-white font-semibold"
+                    >
+                      تغییر به تحویل نشده
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handeldeliveryStatus(true, orderId)}
+                      className=" border border-green-600 rounded-md text-xs sm:text-sm w-20 h-7 sm:w-36 flex justify-center items-center sm:h-10 bg-green-500 hover:bg-green-400 text-white font-semibold"
+                    >
+                      تغییر به تحویل شده
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setorderId(null)}
+                    className=" border border-red-600 rounded-md text-xs sm:text-sm w-20 h-7 sm:w-36 flex justify-center items-center sm:h-10 bg-red-500 hover:bg-red-400 text-white font-semibold"
+                  >
+                    بستن
+                  </button>
+                </div>
+              </section>
+            ))}
+        </ModalForEdite>
+      )}
     </main>
   );
 };

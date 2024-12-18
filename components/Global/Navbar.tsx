@@ -99,9 +99,11 @@ const Navbar: React.FC = () => {
                   </div>
                 </Link>
               </div>
-              <div className="sm:hidden text-green-500 flex justify-center items-center cursor-pointer ">
-                <FaCartShopping size={21} title="سبد خرید" />
-              </div>
+              <Link href={'./orders'}>
+                <div className="sm:hidden text-green-500 flex justify-center items-center cursor-pointer ">
+                  <FaCartShopping size={21} title="سبد خرید" />
+                </div>
+              </Link>
             </div>
           )}
           {!getSession('UserId') && (
@@ -123,13 +125,15 @@ const Navbar: React.FC = () => {
             <FaCartShopping />
           </div>
           <div className="hidden sm:block" title="سبد خرید">
-            <Button
-              text="سبد خرید"
-              img={<FaCartShopping />}
-              number={0}
-              classname=" font-semibold w-36  border-green-500 text-green-500"
-              color="bg-green-500"
-            />
+            <Link href={'./orders'}>
+              <Button
+                text="سبد خرید"
+                img={<FaCartShopping />}
+                number={0}
+                classname=" font-semibold w-36  border-green-500 text-green-500"
+                color="bg-green-500"
+              />
+            </Link>
           </div>
         </div>
       </section>

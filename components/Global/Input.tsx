@@ -12,6 +12,10 @@ interface InputProps {
   error?: FieldError; // خطاهای مرتبط با این فیلد
   accept?: string | undefined;
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  value?: string | number;
+  defaultValue?: string | number;
+  onClick?: React.MouseEventHandler<HTMLInputElement> | undefined;
+  onFocus?: React.FocusEventHandler<HTMLInputElement> | undefined;
 }
 const Input: React.FC<InputProps> = ({
   name,
@@ -23,6 +27,10 @@ const Input: React.FC<InputProps> = ({
   error,
   accept,
   onChange,
+  value,
+  defaultValue,
+  onClick,
+  onFocus,
 }) => {
   return (
     <div className="input-wrapper text-xs sm:text-base text-slate-800  gap-y-2 flex flex-col">
@@ -30,6 +38,10 @@ const Input: React.FC<InputProps> = ({
         {label}
       </label>
       <input
+        onFocus={onFocus}
+        onClick={onClick}
+        defaultValue={defaultValue}
+        value={value}
         id={name}
         type={type}
         accept={accept}

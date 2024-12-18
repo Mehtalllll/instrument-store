@@ -39,6 +39,7 @@ const Products: React.FC = () => {
   }, [Pageproduct, CategorieId, subCategorieId]);
 
   console.log(Allproduct);
+
   return (
     <>
       <section className="w-full p-3 ">
@@ -52,10 +53,17 @@ const Products: React.FC = () => {
                 <div key={p._id} className=" mx-auto">
                   <Link key={p._id} href={`./products/${p._id}`}>
                     <ProductCard
+                      _id={p._id}
+                      category={p.category}
+                      subcategory={p.subcategory}
                       name={p.name}
-                      img={p.images[0]}
-                      price={p.price.toString()}
-                      descriptipn={p.description}
+                      price={p.price}
+                      quantity={p.quantity}
+                      brand={p.brand}
+                      description={p.description}
+                      thumbnail={p.thumbnail}
+                      images={p.images}
+                      slugname={p.slugname}
                     />
                   </Link>
                 </div>

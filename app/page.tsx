@@ -39,6 +39,7 @@ export default function Home() {
 
     loadAllproduct(Pageproduct);
   }, [Pageproduct, CategorieId, subCategorieId]);
+
   return (
     <>
       <Navbar />
@@ -51,16 +52,23 @@ export default function Home() {
         <div className="bg-white w-full h-fit rounded-md shadow-lg p-3 ">
           <div className=" w-full h-fit grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-5 gap-3">
             {Allproduct &&
-              Allproduct.data.products.map((p, index) => (
+              Allproduct.data.products.map(p => (
                 <div key={p._id} className=" mx-auto">
-                  <Link key={p._id} href={`./products/${p._id}`}>
-                    <ProductCard
-                      name={p.name}
-                      img={p.images[0]}
-                      price={p.price.toString()}
-                      descriptipn={p.description}
-                    />
-                  </Link>
+                  {/* <Link key={p._id} href={`./products/${p._id}`}> */}
+                  <ProductCard
+                    _id={p._id}
+                    category={p.category}
+                    subcategory={p.subcategory}
+                    name={p.name}
+                    price={p.price}
+                    quantity={p.quantity}
+                    brand={p.brand}
+                    description={p.description}
+                    thumbnail={p.thumbnail}
+                    images={p.images}
+                    slugname={p.slugname}
+                  />
+                  {/* </Link> */}
                 </div>
               ))}
           </div>
