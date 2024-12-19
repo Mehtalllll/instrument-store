@@ -1,6 +1,6 @@
 'use client';
 
-import { FaCartShopping } from 'react-icons/fa6';
+import { FaCaretDown, FaCaretUp, FaCartShopping } from 'react-icons/fa6';
 import { FaUser } from 'react-icons/fa';
 import Link from 'next/link';
 import React from 'react';
@@ -11,12 +11,20 @@ import { delSession, getSession } from '@/apis/Session-management';
 import Hamburger from '@/components/Global/Hamburger';
 import { getUserData } from '@/apis/UserData';
 import toast from 'react-hot-toast';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/Redux/store';
+import { TiDeleteOutline } from 'react-icons/ti';
+import { AddToCartActions } from '@/Redux/Features/AddToCart';
 
 const Navbar: React.FC = () => {
+  const [isOpenCart, setisOpenCart] = React.useState<boolean>(false);
   const [information, setInformation] = React.useState<{
     name: string;
     role: string;
   } | null>(null);
+
+  const dispatch = useDispatch();
+  const orders = useSelector((state: RootState) => state.AddToCart.cart);
 
   React.useEffect(() => {
     const fetchUserData = async () => {
@@ -33,6 +41,13 @@ const Navbar: React.FC = () => {
     };
     fetchUserData();
   }, []);
+
+  const totalQuantity = useSelector((state: RootState) =>
+    state.AddToCart.cart.reduce(
+      (acc: number, item: any) => acc + item.quantity,
+      0,
+    ),
+  );
 
   return (
     <main className="container mx-auto flex flex-col justify-center p-4">
@@ -99,9 +114,11 @@ const Navbar: React.FC = () => {
                   </div>
                 </Link>
               </div>
-              <div className="sm:hidden text-green-500 flex justify-center items-center cursor-pointer ">
-                <FaCartShopping size={21} title="سبد خرید" />
-              </div>
+              <Link href={'./orders'}>
+                <div className="sm:hidden text-green-500 flex justify-center items-center cursor-pointer ">
+                  <FaCartShopping size={21} title="سبد خرید" />
+                </div>
+              </Link>
             </div>
           )}
           {!getSession('UserId') && (
@@ -119,17 +136,146 @@ const Navbar: React.FC = () => {
               </div>
             </Link>
           )}
-          <div className="sm:hidden text-green-500">
-            <FaCartShopping />
-          </div>
-          <div className="hidden sm:block" title="سبد خرید">
-            <Button
-              text="سبد خرید"
-              img={<FaCartShopping />}
-              number={0}
-              classname=" font-semibold w-36  border-green-500 text-green-500"
-              color="bg-green-500"
-            />
+
+          <div
+            onMouseEnter={() => setisOpenCart(true)}
+            onMouseLeave={() => setisOpenCart(false)}
+            className="hidden sm:block"
+          >
+            <Link href={'./orders'}>
+              <Button
+                text="سبد خرید"
+                img={<FaCartShopping />}
+                number={totalQuantity}
+                classname=" font-semibold w-36  border-green-500 text-green-500"
+                color="bg-green-500"
+              />
+            </Link>
+            {isOpenCart && (
+              <div className=" w-full max-w-[500px] py-4  h-fit grid grid-cols-1  absolute top-16 right-4 z-50 gap-y-5 gap-3 overflow-x-auto">
+                <div className=" p-4 w-full bg-teal-50 shadow-md max-h-[400px] rounded-md overflow-y-scroll noscrollbar">
+                  <table className="w-full max-w-[1500px]  mx-auto border-collapse border border-gray-300 text-center">
+                    <thead className="bg-gray-100 text-gray-800">
+                      <tr>
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          حذف محصول
+                        </th>
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          قیمت در تعداد
+                        </th>
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          قیمت
+                        </th>
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          تعداد
+                        </th>
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          نام محصول
+                        </th>
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          تصویر
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.length ? (
+                        orders
+                          .filter(e => e.quantity > 0)
+                          .map((o, index) => (
+                            <tr
+                              key={o._id}
+                              className={`${
+                                index % 2 === 0 ? 'bg-teal-50' : 'bg-white'
+                              } hover:bg-gray-50`}
+                            >
+                              <td className="p-2  ">
+                                <TiDeleteOutline
+                                  className="mx-auto w-10 cursor-pointer hover:text-red-500"
+                                  size={25}
+                                  onClick={() =>
+                                    dispatch(
+                                      AddToCartActions.removeProductFromCart(
+                                        o._id,
+                                      ),
+                                    )
+                                  }
+                                />
+                              </td>
+                              <td className="p-2 text-xs sm:text-sm ">
+                                {o.price * o.quantity}
+                              </td>
+                              <td className="p-2 text-xs sm:text-sm">
+                                {o.price}
+                              </td>
+                              <td className="p-2 text-xs sm:text-sm ">
+                                <div className="flex justify-center">
+                                  <button
+                                    onClick={() =>
+                                      dispatch(
+                                        AddToCartActions.PlusProductQuantity({
+                                          productId: o._id,
+                                        }),
+                                      )
+                                    }
+                                    className="w-5 bg-teal-300 hover:bg-teal-200 flex justify-center items-center h-7 cursor-pointer rounded-l-md"
+                                  >
+                                    <FaCaretUp />
+                                  </button>
+                                  <input
+                                    className="w-7 text-center h-7 "
+                                    type="text"
+                                    value={o.quantity}
+                                    onChange={e =>
+                                      dispatch(
+                                        AddToCartActions.updateProductQuantity({
+                                          productId: o._id,
+                                          quantity: Number(e.target.value),
+                                        }),
+                                      )
+                                    }
+                                  />
+
+                                  <button
+                                    onClick={() =>
+                                      dispatch(
+                                        AddToCartActions.MinusProductQuantity({
+                                          productId: o._id,
+                                        }),
+                                      )
+                                    }
+                                    className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center  rounded-r-md"
+                                  >
+                                    <FaCaretDown />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="text-xs sm:text-sm p-2">
+                                {o.name}
+                              </td>
+                              <td className=" flex justify-center p-2">
+                                <img
+                                  src={`http://localhost:8000/images/products/images/${o.images[0]}`}
+                                  alt={o.name}
+                                  className=" w-full max-w-20"
+                                />
+                              </td>
+                            </tr>
+                          ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="mx-auto p-10 text-slate-700 text-base font-semibold"
+                          >
+                            سفارشی موجود نیست
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
