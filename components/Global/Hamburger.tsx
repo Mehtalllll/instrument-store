@@ -11,12 +11,14 @@ import CategoriesAndSubcategoriesLoader, {
 } from '@/Redux/Features/CategorieAndSubcategorie';
 import { useAppDispatch } from '@/Redux/Hookuse';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // استفاده از useRouter
 
 export default function HamburgerMenu() {
   const [isOpen, setisOpen] = React.useState<boolean>(false);
   const [isOpensub, setisOpensub] = React.useState<string | null>(null);
 
   const dispatch = useAppDispatch();
+  const router = useRouter(); // دسترسی به روتینگ
 
   CategoriesAndSubcategoriesLoader();
   const categories = useSelector(
@@ -26,8 +28,21 @@ export default function HamburgerMenu() {
     (state: RootState) => state.categoriesAndSubcategories.subcategories,
   );
 
+  const handleCategoryClick = (catId: string, catName: string) => {
+    dispatch(categoriesAndSubcategoriesActions.setCategoriesForFilter(catId));
+    dispatch(categoriesAndSubcategoriesActions.setsubCategoriesForFilter(''));
+    router.push(`/products?category=${catName}`); // آپدیت URL
+  };
+
+  const handleSubcategoryClick = (subId: string, subName: string) => {
+    dispatch(
+      categoriesAndSubcategoriesActions.setsubCategoriesForFilter(subId),
+    );
+    router.push(`/products?subcategory=${subName}`); // آپدیت URL
+  };
+
   return (
-    <main className="w-fit  flex flex-col">
+    <main className="w-fit flex flex-col">
       <section
         className="hidden sm:block relative right-0"
         onMouseEnter={() => setisOpen(true)}
@@ -64,30 +79,17 @@ export default function HamburgerMenu() {
             {categories &&
               categories.data.categories.map((cat, index) => {
                 return (
-                  <>
+                  <React.Fragment key={cat._id}>
                     <p
-                      key={index}
                       onClick={() =>
                         setisOpensub(isOpensub === cat._id ? null : cat._id)
                       }
-                      className="text-right hover:rounded-md   hover:bg-teal-300 w-full cursor-pointer "
+                      className="text-right hover:rounded-md hover:bg-teal-300 w-full cursor-pointer "
                     >
                       <p
                         className="px-2 py-1 text-slate-700 font-bold relative"
-                        key={index}
                         onMouseEnter={() => setisOpensub(cat._id)}
-                        onClick={() =>
-                          dispatch(
-                            categoriesAndSubcategoriesActions.setCategoriesForFilter(
-                              cat._id,
-                            ),
-                            dispatch(
-                              categoriesAndSubcategoriesActions.setsubCategoriesForFilter(
-                                '',
-                              ),
-                            ),
-                          )
-                        }
+                        onClick={() => handleCategoryClick(cat._id, cat.name)} // تغییر URL
                       >
                         {cat.name}
                       </p>
@@ -98,18 +100,14 @@ export default function HamburgerMenu() {
                               .filter(sub => sub.category === cat._id)
                               .map((sub, index) => (
                                 <p
-                                  key={index}
-                                  className="text-right hover:rounded-md  hover:bg-teal-400 w-full cursor-pointer"
-                                  onClick={() =>
-                                    dispatch(
-                                      categoriesAndSubcategoriesActions.setsubCategoriesForFilter(
-                                        sub._id,
-                                      ),
-                                    )
+                                  key={sub._id}
+                                  className="text-right hover:rounded-md hover:bg-teal-400 w-full cursor-pointer"
+                                  onClick={
+                                    () =>
+                                      handleSubcategoryClick(sub._id, sub.name) // تغییر URL
                                   }
                                 >
                                   <Link href={'./products'}>
-                                    {' '}
                                     <p className="px-2 py-1 text-slate-700 ">
                                       {sub.name}
                                     </p>
@@ -119,7 +117,7 @@ export default function HamburgerMenu() {
                         </div>
                       )}
                     </p>
-                  </>
+                  </React.Fragment>
                 );
               })}
           </div>
@@ -139,29 +137,16 @@ export default function HamburgerMenu() {
             {categories &&
               categories.data.categories.map((cat, index) => {
                 return (
-                  <>
+                  <React.Fragment key={cat._id}>
                     <p
-                      key={index}
                       onClick={() =>
-                        setisOpensub(isOpensub == cat._id ? null : cat._id)
+                        setisOpensub(isOpensub === cat._id ? null : cat._id)
                       }
-                      className="text-right hover:rounded-md  hover:bg-teal-400 w-full cursor-pointer "
+                      className="text-right hover:rounded-md hover:bg-teal-400 w-full cursor-pointer "
                     >
                       <p
-                        key={cat._id}
                         className="px-3 py-2 font-bold text-slate-700 text-base"
-                        onClick={() =>
-                          dispatch(
-                            categoriesAndSubcategoriesActions.setCategoriesForFilter(
-                              cat._id,
-                            ),
-                            dispatch(
-                              categoriesAndSubcategoriesActions.setsubCategoriesForFilter(
-                                '',
-                              ),
-                            ),
-                          )
-                        }
+                        onClick={() => handleCategoryClick(cat._id, cat.name)} // تغییر URL
                       >
                         {cat.name}
                       </p>
@@ -172,20 +157,14 @@ export default function HamburgerMenu() {
                               .filter(sub => sub.category === cat._id)
                               .map((sub, index) => (
                                 <p
-                                  key={index}
-                                  className="text-right px-2   hover:bg-teal-400 w-full cursor-pointer"
+                                  key={sub._id}
+                                  className="text-right px-2 hover:bg-teal-400 w-full cursor-pointer"
+                                  onClick={
+                                    () =>
+                                      handleSubcategoryClick(sub._id, sub.name) // تغییر URL
+                                  }
                                 >
-                                  <p
-                                    key={sub._id}
-                                    className="px-3 py-2 text-slate-700 "
-                                    onClick={() =>
-                                      dispatch(
-                                        categoriesAndSubcategoriesActions.setsubCategoriesForFilter(
-                                          sub._id,
-                                        ),
-                                      )
-                                    }
-                                  >
+                                  <p className="px-3 py-2 text-slate-700 ">
                                     {sub.name}
                                   </p>
                                 </p>
@@ -193,7 +172,7 @@ export default function HamburgerMenu() {
                         </div>
                       )}
                     </p>
-                  </>
+                  </React.Fragment>
                 );
               })}
           </div>
