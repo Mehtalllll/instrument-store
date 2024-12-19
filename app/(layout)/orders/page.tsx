@@ -12,6 +12,11 @@ const OrdersForUser: React.FC = () => {
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.AddToCart.cart);
 
+  const totalAmount = orders.reduce(
+    (total, product) => total + product.price * product.quantity,
+    0,
+  );
+
   return (
     <main className="p-4">
       <div className="bg-white w-full h-fit rounded-md shadow-lg p-3 ">
@@ -137,6 +142,20 @@ const OrdersForUser: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="flex justify-around py-4">
+          <Button
+            text="نهایی کردن خرید"
+            onClick={() => dispatch(AddToCartActions.clearCart())}
+            classname={ClassNames(
+              'border-green-300 text-xs text-white w-[110px] flex',
+              ' justify-center h-7 font-semibold bg-green-500 hover:bg-green-400',
+              'sm:w-28 sm:h-8 lg:w-36 sm:text-sm text-nowrap',
+            )}
+          />
+          <p className="text-sm font-bold text-slate-700 sm:text-base">
+            مبلغ قابل پرداخت:{totalAmount}
+          </p>
         </div>
       </div>
     </main>

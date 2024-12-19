@@ -2,6 +2,7 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IProductCard } from '@/components/Home/ProductCard';
+import toast from 'react-hot-toast';
 
 // تعریف نوع وضعیت سبد خرید
 interface CartState {
@@ -48,11 +49,13 @@ const AddToCart = createSlice({
         });
       }
       saveCartToLocalStorage(state.cart); // ذخیره وضعیت جدید
+      toast.success(`محصول به سبد خرید اضافه شد`);
     },
     // حذف محصول از سبد خرید
     removeProductFromCart: (state, action: PayloadAction<string>) => {
       state.cart = state.cart.filter(product => product._id !== action.payload);
       saveCartToLocalStorage(state.cart); // ذخیره وضعیت جدید
+      toast.error(`محصول از سبد خرید حذف شد`);
     },
     // تغییر تعداد محصول
     updateProductQuantity: (
