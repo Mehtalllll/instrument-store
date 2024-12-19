@@ -8,10 +8,10 @@ import { IProductsList } from '@/types/Product';
 import { ClassNames } from '@/utils/classname-join';
 import Link from 'next/link';
 import React from 'react';
+import { useQuery } from 'react-query';
 import { useSelector } from 'react-redux';
 
 const Products: React.FC = () => {
-  const [Allproduct, setAllproduct] = React.useState<IProductsList>();
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
 
   const CategorieId = useSelector(
@@ -20,25 +20,35 @@ const Products: React.FC = () => {
   const subCategorieId = useSelector(
     (state: RootState) => state.categoriesAndSubcategories.subcategorieId,
   );
-  const totalpagesArrayForProduct = [];
-  for (let i = 1; i <= Number(Allproduct?.total_pages); i++) {
-    totalpagesArrayForProduct.push(i);
-  }
 
-  React.useEffect(() => {
-    const loadAllproduct = async (Pageproduct: number) => {
-      const result: IProductsList = await fetchAllproduct({
+  const Allproduct = useQuery(
+    ['Products', Pageproduct, CategorieId, subCategorieId],
+    () =>
+      fetchAllproduct({
         page: Pageproduct,
         category: CategorieId,
         subcategory: subCategorieId,
-      });
-      setAllproduct(result);
-    };
+      }),
+    { keepPreviousData: true, staleTime: 5000 },
+  );
 
-    loadAllproduct(Pageproduct);
-  }, [Pageproduct, CategorieId, subCategorieId]);
-
-  console.log(Allproduct);
+  const totalpagesArrayForProduct = [];
+  for (let i = 1; i <= Number(Allproduct?.data?.total_pages); i++) {
+    totalpagesArrayForProduct.push(i);
+  }
+  const maxVisiblePages = 5;
+  const visiblePages = React.useMemo(() => {
+    const total = Number(Allproduct.data?.total_pages) || 1;
+    const startPage = Math.max(
+      1,
+      Pageproduct - Math.floor(maxVisiblePages / 2),
+    );
+    const endPage = Math.min(total, startPage + maxVisiblePages - 1);
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i,
+    );
+  }, [Pageproduct, Allproduct.data?.total_pages]);
 
   return (
     <>
@@ -49,7 +59,7 @@ const Products: React.FC = () => {
         <div className="bg-white w-full h-fit rounded-md shadow-lg p-3 ">
           <div className=" w-full h-fit grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-5 gap-3">
             {Allproduct &&
-              Allproduct.data.products.map((p, index) => (
+              Allproduct.data?.data.products.map((p, index) => (
                 <div key={p._id} className=" mx-auto">
                   <Link key={p._id} href={`./products/${p._id}`}>
                     <ProductCard
@@ -69,7 +79,7 @@ const Products: React.FC = () => {
                 </div>
               ))}
           </div>
-          <section className="w-full mx-auto pt-5 max-w-[900px] flex flex-row justify-around">
+          <section className="w-full mx-auto mt-5 max-w-[900px] flex flex-row justify-around">
             <Button
               classname="border-teal-500 text-xs text-slate-700 sm:text-sm font-semibold text-nowrap h-7 w-20 justify-center my-3"
               text="صفحه قبل"
@@ -78,7 +88,7 @@ const Products: React.FC = () => {
               }
             />
             <div className="w-full max-w-[100px] flex flex-row gap-x-3 justify-center items-center cursor-pointer ">
-              {totalpagesArrayForProduct.map(p => (
+              {visiblePages.map(p => (
                 <>
                   <div
                     className={ClassNames(
