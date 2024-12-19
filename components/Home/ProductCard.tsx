@@ -2,6 +2,7 @@ import { AddToCartActions } from '@/Redux/Features/AddToCart';
 import { RootState } from '@/Redux/store';
 import { IProduct } from '@/types/Product';
 import { BiSolidCartAdd } from 'react-icons/bi';
+import { FaCaretDown, FaCaretUp } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
 
 const toPersianNumbers = (num: number | string) => {
@@ -55,6 +56,7 @@ const ProductCard: React.FC<IProductCard> = ({
     };
     dispatch(AddToCartActions.addProductToCart(product));
   };
+  const quantityinp = useSelector((State: RootState) => State.AddToCart.cart);
 
   return (
     <main className="w-full max-w-72 h-96 border border-teal-300 p-3 rounded-md shadow-lg flex flex-col gap-y-3">
@@ -72,12 +74,60 @@ const ProductCard: React.FC<IProductCard> = ({
         </p>
         <div className="w-full flex justify-around items-center max-w-72">
           <p className="text-teal-500">تومان {toPersianNumbers(price)}</p>
-          <div
-            className="text-white bg-green-500 rounded-full w-10 h-10 flex hover:bg-green-400 justify-center items-center"
-            onClick={() => handleAddToCart()}
-          >
-            <BiSolidCartAdd />
-          </div>
+          {quantityinp &&
+          Number(quantityinp.find(q => q._id == _id)?.quantity) > 0 ? (
+            quantityinp
+              .filter(q => q._id == _id)
+              .map(o => (
+                <div className="flex justify-center">
+                  <button
+                    onClick={() =>
+                      dispatch(
+                        AddToCartActions.PlusProductQuantity({
+                          productId: o._id,
+                        }),
+                      )
+                    }
+                    className="w-5 bg-teal-300 hover:bg-teal-200 flex justify-center items-center h-7 cursor-pointer rounded-l-md"
+                  >
+                    <FaCaretUp />
+                  </button>
+                  <input
+                    className="w-7 text-center h-7 "
+                    type="text"
+                    value={o.quantity}
+                    onChange={e =>
+                      dispatch(
+                        AddToCartActions.updateProductQuantity({
+                          productId: o._id,
+                          quantity: Number(e.target.value),
+                        }),
+                      )
+                    }
+                  />
+
+                  <button
+                    onClick={() =>
+                      dispatch(
+                        AddToCartActions.MinusProductQuantity({
+                          productId: o._id,
+                        }),
+                      )
+                    }
+                    className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center  rounded-r-md"
+                  >
+                    <FaCaretDown />
+                  </button>
+                </div>
+              ))
+          ) : (
+            <div
+              className="text-white bg-green-500 cursor-pointer rounded-full w-10 h-10 flex hover:bg-green-400 justify-center items-center"
+              onClick={() => handleAddToCart()}
+            >
+              <BiSolidCartAdd />
+            </div>
+          )}
         </div>
       </div>
     </main>

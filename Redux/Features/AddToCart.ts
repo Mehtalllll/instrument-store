@@ -31,7 +31,7 @@ const AddToCart = createSlice({
           subcategory: action.payload.subcategory,
           name: action.payload.name,
           price: action.payload.price,
-          quantity: action.payload.quantity,
+          quantity: 1,
           brand: action.payload.brand,
           description: action.payload.description,
           thumbnail: action.payload.thumbnail,
@@ -55,6 +55,28 @@ const AddToCart = createSlice({
       );
       if (product) {
         product.quantity = action.payload.quantity;
+      }
+    },
+    PlusProductQuantity: (
+      state,
+      action: PayloadAction<{ productId: string }>,
+    ) => {
+      const product = state.cart.find(
+        item => item._id === action.payload.productId,
+      );
+      if (product) {
+        product.quantity += 1;
+      }
+    },
+    MinusProductQuantity: (
+      state,
+      action: PayloadAction<{ productId: string }>,
+    ) => {
+      const product = state.cart.find(
+        item => item._id === action.payload.productId,
+      );
+      if (product && product.quantity > 0) {
+        product.quantity -= 1;
       }
     },
     // اکشن برای خالی کردن سبد خرید

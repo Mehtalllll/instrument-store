@@ -7,7 +7,6 @@ import { fetchAllproduct } from '@/apis/AllProduct';
 import { IProductsList } from '@/types/Product';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/Redux/store';
-import Link from 'next/link';
 import ProductCard from '@/components/Home/ProductCard';
 import Button from '@/components/Global/Button';
 import { ClassNames } from '@/utils/classname-join';
@@ -41,7 +40,7 @@ export default function Home() {
   }, [Pageproduct, CategorieId, subCategorieId]);
 
   return (
-    <>
+    <main className="container mx-auto">
       <Navbar />
       <HeroSection />
 
@@ -115,6 +114,6 @@ export default function Home() {
         </div>
       </section>
       <Footer />
-    </>
+    </main>
   );
 }
