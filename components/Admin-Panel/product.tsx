@@ -5,14 +5,10 @@ import ModalForEdite from '../Global/Edite-modal';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { fetchCategories } from '@/apis/categories';
 import { GetEditeProduct } from '@/apis/EditProduct';
 import { fetchDelproduct } from '@/apis/DeleteProduct';
-import { fetchSubCategories } from '@/apis/subcategories';
 
-import { IProductsList } from '@/types/Product';
-import { IRescategories } from '@/types/categories';
-import { IRessubcategories } from '@/types/subcategories';
+import { Isubcategories } from '@/types/subcategories';
 
 import Input from '../Global/Input';
 import Button from '../Global/Button';
@@ -20,36 +16,62 @@ import { fetchAllproduct } from '@/apis/AllProduct';
 import toast from 'react-hot-toast';
 import { ClassNames } from '@/utils/classname-join';
 import { GetAddProduct } from '@/apis/AddProduct';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import CategoriesAndSubcategoriesLoader from '@/Redux/Features/CategorieAndSubcategorie';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/Redux/store';
+import { TextEditor } from '../Global/Text-editor';
+import { IProduct } from '@/types/Product';
 
 const ProductContainer: React.FC = () => {
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
+  const [DelREf, setDelREf] = React.useState<string | null>(null);
+  const [CatId, setCatId] = React.useState<string | null>(null);
   const [EditId, setEditId] = React.useState<string | null>(null);
-  const [DelREf, setDelREf] = React.useState<boolean>(false);
   const [Addproduct, setAddproduct] = React.useState<boolean>(false);
-  const [Allproduct, setAllproduct] = React.useState<IProductsList>();
-  const [categories, setcategories] = React.useState<IRescategories>();
-  const [subcategories, setsubcategories] = React.useState<IRessubcategories>();
+  const [filteredSubcategories, setFilteredSubcategories] = React.useState<
+    Isubcategories[]
+  >([]);
+  const [images, setImages] = React.useState<Array<string | ArrayBuffer>>([]);
 
-  const totalpagesArrayForProduct = [];
-  for (let i = 1; i <= Number(Allproduct?.total_pages); i++) {
-    totalpagesArrayForProduct.push(i);
-  }
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files; // فایل‌های انتخابی را دریافت می‌کنیم
+    if (files) {
+      const fileArray = Array.from(files); // تبدیل FileList به آرایه
+      const readers = fileArray.map(file => {
+        return new Promise<string | ArrayBuffer>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () =>
+            resolve(reader.result as string | ArrayBuffer);
+          reader.onerror = reject;
+          reader.readAsDataURL(file); // تبدیل فایل به Base64
+        });
+      });
+      Promise.all(readers)
+        .then(results => {
+          setImages(prev => [...prev, ...results]); // افزودن تصاویر به آرایه
+        })
+        .catch(err => console.error('Error reading files', err));
+    }
+  };
 
   const EditSchema = z.object({
     name: z.string().min(1, 'نام محصول الزامی است'),
     description: z.string().min(1, 'توضیحات الزامی است'),
-    images: z.any(), // قبول فایل
+    images: z.any(),
+    category: z.string(),
     subcategory: z.string(),
   });
 
   const AddSchema = z.object({
     name: z.string().min(1, 'نام محصول الزامی است'),
-    price: z.string().min(1, 'نام محصول الزامی است'),
-    quantity: z.string().min(1, 'نام محصول الزامی است'),
-    brand: z.string().min(1, 'نام محصول الزامی است'),
-    description: z.string().min(1, 'توضیحات الزامی است'),
-    images: z.any(), // قبول فایل
+    price: z.string().min(1, 'قیمت محصول الزامی است'),
+    quantity: z.string().min(1, 'تعداد محصول الزامی است'),
+    brand: z.string().min(1, 'برند محصول الزامی است'),
+    description: z.string().min(20, '.توضیحات باید بیشتر از 20 کارکتر باشد'),
+    images: z.any(),
     subcategory: z.string(),
+    category: z.string(),
   });
 
   type EditFormInputs = z.infer<typeof EditSchema>;
@@ -69,6 +91,7 @@ const ProductContainer: React.FC = () => {
 
     const formData = new FormData();
     formData.append('name', data.name);
+    formData.append('category', data.category);
     formData.append('subcategory', data.subcategory);
     formData.append('description', data.description);
     if (data.images && data.images[0]) {
@@ -91,8 +114,8 @@ const ProductContainer: React.FC = () => {
     formData.append('price', data.price);
     formData.append('quantity', data.quantity);
     formData.append('brand', data.brand);
-    formData.append('subcategory', JSON.parse(data.subcategory).sub);
-    formData.append('category', JSON.parse(data.subcategory).cat);
+    formData.append('subcategory', data.subcategory);
+    formData.append('category', data.category);
     formData.append('description', data.description);
     if (data.images && data.images[0]) {
       formData.append('images', data.images[0]);
@@ -110,43 +133,89 @@ const ProductContainer: React.FC = () => {
     }
   };
 
-  React.useEffect(() => {
-    const loadAllproduct = async (Pageproduct: number) => {
-      const result: IProductsList = await fetchAllproduct({
-        page: Pageproduct,
-      });
-      setAllproduct(result);
-    };
+  const Allproduct = useQuery(
+    ['Products', Pageproduct, EditId, Addproduct, DelREf],
+    () => fetchAllproduct({ page: Pageproduct }),
+    { keepPreviousData: true, staleTime: 5000 },
+  );
 
-    loadAllproduct(Pageproduct);
-  }, [Pageproduct, EditId, Addproduct, DelREf]);
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: fetchDelproduct,
+    onSuccess: () => {
+      // داده‌های کش را بعد از حذف محصول به‌روزرسانی کنید
+      queryClient.invalidateQueries({ queryKey: ['Products'] });
+
+      const products = queryClient.getQueryData<IProduct[]>([
+        'products',
+        Pageproduct,
+      ]);
+      if (Allproduct && Allproduct.data?.data.products.length === 1) {
+        setPageproduct(prev => Math.max(prev - 1, 1)); // رفتن به صفحه قبلی
+      }
+
+      toast.success('محصول با موفقیت حذف شد');
+      setDelREf(null);
+    },
+    onError: error => {
+      toast.error('خطا در حذف محصول:', error as any);
+    },
+  });
+
+  const totalpagesArrayForProduct = [];
+  for (let i = 1; i <= Number(Allproduct.data?.total_pages); i++) {
+    totalpagesArrayForProduct.push(i);
+  }
+
+  CategoriesAndSubcategoriesLoader();
+  const categories = useSelector(
+    (state: RootState) => state.categoriesAndSubcategories.categories,
+  );
+  const subcategories = useSelector(
+    (state: RootState) => state.categoriesAndSubcategories.subcategories,
+  );
+
+  // به محض انتخاب دسته بندی جدید، زیر دسته ها را فیلتر می کنیم
+  React.useEffect(() => {
+    if (CatId) {
+      const subcategoriesForSelectedCategory =
+        subcategories?.data.subcategories.filter(
+          subcategory => subcategory.category === CatId,
+        );
+
+      setFilteredSubcategories(subcategoriesForSelectedCategory || []);
+    }
+  }, [CatId, subcategories]);
 
   React.useEffect(() => {
     if (EditId && Allproduct) {
-      const product = Allproduct.data.products.find(p => p._id === EditId);
+      const product = Allproduct.data?.data.products.find(
+        p => p._id === EditId,
+      );
       if (product) {
         EditForm.reset({
           name: product.name,
           description: product.description,
-          subcategory: product.subcategory,
         });
       }
     }
   }, [EditId, Allproduct, EditForm]);
 
-  React.useEffect(() => {
-    const loadCategories = async () => {
-      const result: IRescategories = await fetchCategories();
-      setcategories(result);
-    };
-    const loadsubCategories = async () => {
-      const result2: IRessubcategories = await fetchSubCategories();
-      setsubcategories(result2);
-    };
+  const maxVisiblePages = 5; // تعداد صفحات قابل نمایش در یک زمان
 
-    loadCategories();
-    loadsubCategories();
-  }, []);
+  const visiblePages = React.useMemo(() => {
+    const total = Number(Allproduct.data?.total_pages) || 1;
+    const startPage = Math.max(
+      1,
+      Pageproduct - Math.floor(maxVisiblePages / 2),
+    );
+    const endPage = Math.min(total, startPage + maxVisiblePages - 1);
+
+    return Array.from(
+      { length: endPage - startPage + 1 },
+      (_, i) => startPage + i,
+    );
+  }, [Pageproduct, Allproduct.data?.total_pages]);
 
   return (
     <>
@@ -182,7 +251,7 @@ const ProductContainer: React.FC = () => {
 
             <tbody>
               {Allproduct &&
-                Allproduct.data.products.map((p, index) => (
+                Allproduct.data?.data.products.map((p, index) => (
                   <tr
                     key={p._id}
                     className={`${
@@ -198,7 +267,7 @@ const ProductContainer: React.FC = () => {
                         />
                         <Button
                           onClick={() => {
-                            return fetchDelproduct(p._id), setDelREf(!DelREf);
+                            return setDelREf(p._id);
                           }}
                           classname="w-14 h-6 text-xs text-slate-700 sm:font-semibold sm:w-20 sm:h-8 border border-red-500 flex justify-center hover:bg-red-500 hover:text-white"
                           text="حذف"
@@ -243,7 +312,7 @@ const ProductContainer: React.FC = () => {
               }
             />
             <div className="w-full max-w-[100px] flex flex-row gap-x-3 justify-center items-center cursor-pointer ">
-              {totalpagesArrayForProduct.map(p => (
+              {visiblePages.map(p => (
                 <>
                   <div
                     className={ClassNames(
@@ -276,6 +345,25 @@ const ProductContainer: React.FC = () => {
           </section>
         </section>
 
+        {DelREf && (
+          <ModalForEdite>
+            <p className="mb-4">آیا از حذف این آیتم مطمئن هستید؟</p>
+            <div className="col-span-4 w-full gap-x-4 grid grid-cols-2 justify-items-center pt-2">
+              <button
+                onClick={() => deleteMutation.mutate(DelREf)}
+                className=" border border-green-600 rounded-md text-xs sm:text-sm w-20 h-7 sm:w-36 flex justify-center items-center sm:h-10 bg-green-500 hover:bg-green-400 text-white font-semibold"
+              >
+                تائید
+              </button>
+              <button
+                onClick={() => setDelREf(null)}
+                className=" border border-red-600 rounded-md text-xs sm:text-sm w-20 h-7 sm:w-36 flex justify-center items-center sm:h-10 bg-red-500 hover:bg-red-400 text-white font-semibold"
+              >
+                بستن
+              </button>
+            </div>
+          </ModalForEdite>
+        )}
         {Addproduct && (
           <section>
             <ModalForEdite>
@@ -315,61 +403,94 @@ const ProductContainer: React.FC = () => {
                   required={true}
                   error={AddForm.formState.errors.brand}
                 />
-                <div className="w-full text-right px-6 text-xs sm:text-sm">
-                  <label className="text-slate-700 font-semibold">
-                    دسته بندی
-                  </label>
-                  <select
-                    {...AddForm.register('subcategory')}
-                    className="border max-h-[50px] overflow-y-auto relative z-10  border-slate-300  w-full max-w-[450px] rounded-md p-1 input text-right "
-                  >
-                    {categories?.data.categories.map(c => (
-                      <optgroup key={c._id} label={c.name}>
-                        {subcategories?.data.subcategories.map(
-                          s =>
-                            s.category === c._id && (
-                              <option
-                                value={JSON.stringify({
-                                  sub: s._id,
-                                  cat: c._id,
-                                })}
-                                key={s._id}
-                              >
-                                {s.name}
-                              </option>
-                            ),
-                        )}
-                      </optgroup>
-                    ))}
-                  </select>
+                <div className="flex flex-col gap-y-2 w-full">
+                  <div className="w-full text-right  text-xs sm:text-sm space-y-2">
+                    <label className="text-slate-700 font-semibold">
+                      دسته بندی
+                    </label>
+                    <select
+                      {...AddForm.register('category')}
+                      onChange={e => setCatId(e.target.value)}
+                      className="border max-h-[50px] overflow-y-auto relative z-10 font-semibold text-slate-700 border-slate-300  w-full max-w-[450px] rounded-md p-1 input text-right "
+                    >
+                      {categories?.data.categories.map(c => (
+                        <option
+                          key={c._id}
+                          value={c._id}
+                          className="font-semibold"
+                        >
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {CatId !== null && (
+                    <div className="w-full text-right  text-xs sm:text-sm space-y-2">
+                      <label className="text-slate-700 font-semibold">
+                        زیر دسته بندی
+                      </label>
+                      <select
+                        {...AddForm.register('subcategory')}
+                        className="border max-h-[50px] overflow-y-auto relative z-10 font-semibold text-slate-700 border-slate-300  w-full max-w-[450px] rounded-md p-1 input text-right "
+                      >
+                        {filteredSubcategories.map(s => (
+                          <option
+                            key={s._id}
+                            value={s._id}
+                            className="font-semibold px-2"
+                          >
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
-                <Input
-                  type="file"
-                  accept="image/*"
-                  name="images"
-                  label=":تصویر "
-                  placeholder="Enter images"
-                  register={AddForm.register}
-                  required={false}
-                />
-                <div className="w-full text-xs sm:text-base  flex flex-col gap-y-2 items-end px-6  ">
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    name="images"
+                    label=":تصویر "
+                    placeholder="Enter images"
+                    register={AddForm.register}
+                    required={false}
+                    onChange={e => handleImageChange(e)}
+                  />
+
+                  {!!images.length && (
+                    <div className=" flex gap-1 mt-2 p-2 w-full h-24 overflow-y-hidden overflow-x-scroll border-2 rounded-md ">
+                      {images.map(
+                        (imgs: string | ArrayBuffer, index: number) => (
+                          <img
+                            key={index}
+                            src={imgs as string}
+                            alt={`Selected ${index}`}
+                            className="w-20 h-20 rounded-md"
+                          />
+                        ),
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-full text-xs sm:text-base  flex flex-col gap-y-2 items-end   ">
                   <label
                     className="text-slate-700 font-semibold"
                     htmlFor="description"
                   >
                     :توضیحات
                   </label>
-                  <textarea
-                    className="w-full rounded-md border-2 border-slate-300 h-[170px] text-right p-1 text-xs sm:text-sm "
-                    id="description"
-                    {...AddForm.register('description')}
+
+                  <TextEditor
+                    name="description"
+                    register={AddForm.register}
+                    watch={AddForm.watch}
+                    setValue={AddForm.setValue}
+                    required={true}
+                    error={AddForm.formState.errors.description}
                   />
-                  {AddForm.formState.errors.description && (
-                    <p className="text-red-500">
-                      {AddForm.formState.errors.description.message}
-                    </p>
-                  )}
                 </div>
 
                 <div className="col-span-4 w-full gap-x-4 grid grid-cols-2 justify-items-center pt-2">
@@ -397,7 +518,7 @@ const ProductContainer: React.FC = () => {
             <ModalForEdite>
               <form
                 onSubmit={EditForm.handleSubmit(onSubmitEditForList)}
-                className="w-full flex flex-col gap-2 "
+                className="w-full max-w-[450px] flex flex-col gap-y-2 "
               >
                 <Input
                   name="name"
@@ -407,55 +528,92 @@ const ProductContainer: React.FC = () => {
                   required={false}
                   error={EditForm.formState.errors.name}
                 />
-                <div className="w-full text-right  text-xs sm:text-sm">
-                  <label className="text-slate-700 font-semibold">
-                    دسته بندی
-                  </label>
-                  <select
-                    {...EditForm.register('subcategory')}
-                    className="border max-h-[50px] overflow-y-auto relative z-10  border-slate-300  w-full max-w-[450px] rounded-md p-1 input text-right "
-                  >
-                    {categories?.data.categories.map(c => (
-                      <optgroup key={c._id} label={c.name}>
-                        {subcategories?.data.subcategories.map(
-                          s =>
-                            s.category === c._id && (
-                              <option value={s._id} key={s._id}>
-                                {s.name}
-                              </option>
-                            ),
-                        )}
-                      </optgroup>
-                    ))}
-                  </select>
+                <div className="flex flex-col gap-y-2 w-full">
+                  <div className="w-full text-right text-xs sm:text-sm space-y-2">
+                    <label className="text-slate-700 font-semibold">
+                      دسته بندی
+                    </label>
+                    <select
+                      {...EditForm.register('category')}
+                      onChange={e => setCatId(e.target.value)}
+                      className="border max-h-[50px] overflow-y-auto relative z-10 font-semibold text-slate-700 border-slate-300  w-full max-w-[450px] rounded-md p-1  text-right "
+                    >
+                      {categories?.data.categories.map(c => (
+                        <option
+                          key={c._id}
+                          value={c._id}
+                          className="font-semibold"
+                        >
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {CatId !== null && (
+                    <div className="w-full text-right  text-xs sm:text-sm space-y-2">
+                      <label className="text-slate-700 font-semibold">
+                        زیر دسته بندی
+                      </label>
+                      <select
+                        {...EditForm.register('subcategory')}
+                        className="border max-h-[50px] overflow-y-auto relative z-10 font-semibold text-slate-700 border-slate-300  w-full max-w-[450px] rounded-md p-1 input text-right "
+                      >
+                        {filteredSubcategories.map(s => (
+                          <option
+                            key={s._id}
+                            value={s._id}
+                            className="font-semibold px-2"
+                          >
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    name="images"
+                    label=":تصویر "
+                    placeholder="Enter images"
+                    register={EditForm.register}
+                    required={false}
+                    onChange={e => handleImageChange(e)}
+                  />
+
+                  {!!images.length && (
+                    <div className=" flex gap-1 mt-2 p-2 w-full  h-24 overflow-y-hidden overflow-x-scroll border-2 rounded-md ">
+                      {images.map(
+                        (imgs: string | ArrayBuffer, index: number) => (
+                          <img
+                            key={index}
+                            src={imgs as string}
+                            alt={`Selected ${index}`}
+                            className="w-20 h-20 rounded-md"
+                          />
+                        ),
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <Input
-                  type="file"
-                  accept="image/*"
-                  name="images"
-                  label=":تصویر "
-                  placeholder="Enter images"
-                  register={EditForm.register}
-                  required={false}
-                />
-                <div className="w-full text-xs sm:text-base  flex flex-col gap-y-2 items-end px-6  ">
+                <div className="w-full text-xs sm:text-base  flex flex-col gap-y-2 items-end   ">
                   <label
                     className="text-slate-700 font-semibold"
                     htmlFor="description"
                   >
                     :توضیحات
                   </label>
-                  <textarea
-                    className="w-full rounded-md border-2 border-slate-300 h-[170px] text-right p-1 text-xs sm:text-sm "
-                    id="description"
-                    {...EditForm.register('description')}
+                  <TextEditor
+                    name="description"
+                    register={EditForm.register} // ارسال register
+                    setValue={EditForm.setValue}
+                    watch={EditForm.watch}
+                    required={true} // تعیین اینکه این فیلد اجباری است یا خیر
+                    error={EditForm.formState.errors.description} // ارسال خطای مربوط به فیلد
                   />
-                  {EditForm.formState.errors.description && (
-                    <p className="text-red-500">
-                      {EditForm.formState.errors.description.message}
-                    </p>
-                  )}
                 </div>
 
                 <div className="col-span-4 w-full grid grid-cols-2 sm:gap-x-5 justify-items-center pt-2">
