@@ -1,19 +1,17 @@
 'use client';
-import React from 'react';
-import Navbar from '@/components/Global/Navbar';
-import HeroSection from '@/components/Home/heroImage';
-import Footer from '@/components/Home/Footer';
 import { fetchAllproduct } from '@/apis/AllProduct';
-import { IProductsList } from '@/types/Product';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/Redux/store';
-import ProductCard from '@/components/Home/ProductCard';
 import Button from '@/components/Global/Button';
+import Navbar from '@/components/Global/Navbar';
+import ProductCard from '@/components/Home/ProductCard';
+import { RootState } from '@/Redux/store';
+import { IProductsList } from '@/types/Product';
 import { ClassNames } from '@/utils/classname-join';
 import Link from 'next/link';
+import React from 'react';
 import { useQuery } from 'react-query';
+import { useSelector } from 'react-redux';
 
-export default function Home() {
+const Products: React.FC = () => {
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
 
   const CategorieId = useSelector(
@@ -22,6 +20,7 @@ export default function Home() {
   const subCategorieId = useSelector(
     (state: RootState) => state.categoriesAndSubcategories.subcategorieId,
   );
+
   const Allproduct = useQuery(
     ['Products', Pageproduct, CategorieId, subCategorieId],
     () =>
@@ -52,10 +51,7 @@ export default function Home() {
   }, [Pageproduct, Allproduct.data?.total_pages]);
 
   return (
-    <main className="container mx-auto">
-      <Navbar />
-      <HeroSection />
-
+    <>
       <section className="w-full p-3 ">
         <p className="p-4 text-xl font-semibold text-right text-slate-700">
           لیست محصولات
@@ -63,7 +59,7 @@ export default function Home() {
         <div className="bg-white w-full h-fit rounded-md shadow-lg p-3 ">
           <div className=" w-full h-fit grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-5 gap-3">
             {Allproduct &&
-              Allproduct.data?.data.products.map(p => (
+              Allproduct.data?.data.products.map((p, index) => (
                 <div key={p._id} className=" mx-auto">
                   <Link key={p._id} href={`./products/${p._id}`}>
                     <ProductCard
@@ -125,7 +121,7 @@ export default function Home() {
           </section>
         </div>
       </section>
-      <Footer />
-    </main>
+    </>
   );
-}
+};
+export default Products;

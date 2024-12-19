@@ -1,9 +1,9 @@
-import AdminNavbar from '@/components/Admin-Panel/AdminPanel-Navbar';
+import Navbar from '@/components/Global/Navbar';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <section>
-      <AdminNavbar />
+      <Navbar />
       <main>{children}</main>
     </section>
   );

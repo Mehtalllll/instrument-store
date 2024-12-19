@@ -1,8 +1,9 @@
-export const GetEditeProduct = async (formData: FormData, id: any) => {
+export const GetEditeorder = async (deliveryStatus: boolean, id: any) => {
   try {
-    const response = await fetch(`http://localhost:8000/api/products/${id}`, {
+    const response = await fetch(`http://localhost:8000/api/orders/${id}`, {
       method: 'PATCH',
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deliveryStatus: deliveryStatus }),
     });
 
     if (!response.ok) {

@@ -1,12 +1,11 @@
-import { getSession } from './Session-management';
+import { IProductById } from '@/types/Product';
 
-export const fetchDelproduct = async (id: string) => {
+export const fetchProductById = async (Id: string): Promise<IProductById> => {
   try {
-    const response = await fetch(`http://localhost:8000/api/products/${id}`, {
-      method: 'DELETE',
+    const response = await fetch(`http://localhost:8000/api/products/${Id}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${getSession('accessToken')}`,
       },
     });
 

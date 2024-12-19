@@ -1,8 +1,13 @@
-export const GetEditeProduct = async (formData: FormData, id: any) => {
+import { getSession } from './Session-management';
+
+export const GetAddProduct = async (formData: FormData) => {
   try {
-    const response = await fetch(`http://localhost:8000/api/products/${id}`, {
-      method: 'PATCH',
+    const response = await fetch(`http://localhost:8000/api/products`, {
+      method: 'POST',
       body: formData,
+      headers: {
+        Authorization: `Bearer ${getSession('accessToken')}`,
+      },
     });
 
     if (!response.ok) {
