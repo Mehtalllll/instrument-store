@@ -1,20 +1,39 @@
 'use client';
 
-import { IProductCard } from '@/components/Home/ProductCard';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { IProductCard } from '@/components/Home/ProductCard';
 
+// تعریف نوع وضعیت سبد خرید
 interface CartState {
   cart: IProductCard[];
 }
 
+// بارگذاری داده‌ها از localStorage (اگر وجود داشته باشد)
+const loadCartFromLocalStorage = (): IProductCard[] => {
+  if (typeof window !== 'undefined') {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  }
+  return [];
+};
+
+// وضعیت اولیه
 const initialState: CartState = {
-  cart: [],
+  cart: loadCartFromLocalStorage(),
+};
+
+// ذخیره سبد خرید در localStorage
+const saveCartToLocalStorage = (cart: IProductCard[]) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }
 };
 
 const AddToCart = createSlice({
   name: 'AddToCart',
   initialState,
   reducers: {
+    // اضافه کردن محصول به سبد خرید
     addProductToCart: (state, action: PayloadAction<IProductCard>) => {
       const existingProduct = state.cart.find(
         product => product._id === action.payload._id,
@@ -23,29 +42,19 @@ const AddToCart = createSlice({
       if (existingProduct) {
         existingProduct.quantity += 1;
       } else {
-        console.log(state.cart.map(e => e.name));
-
         state.cart.push({
-          _id: action.payload._id,
-          category: action.payload.category,
-          subcategory: action.payload.subcategory,
-          name: action.payload.name,
-          price: action.payload.price,
+          ...action.payload,
           quantity: 1,
-          brand: action.payload.brand,
-          description: action.payload.description,
-          thumbnail: action.payload.thumbnail,
-          images: action.payload.images,
-          slugname: action.payload.slugname,
         });
       }
+      saveCartToLocalStorage(state.cart); // ذخیره وضعیت جدید
     },
-    // اکشن برای حذف محصول از سبد خرید
+    // حذف محصول از سبد خرید
     removeProductFromCart: (state, action: PayloadAction<string>) => {
-      // حذف محصول بر اساس شناسه آن
       state.cart = state.cart.filter(product => product._id !== action.payload);
+      saveCartToLocalStorage(state.cart); // ذخیره وضعیت جدید
     },
-    // اکشن برای تغییر تعداد محصول در سبد خرید
+    // تغییر تعداد محصول
     updateProductQuantity: (
       state,
       action: PayloadAction<{ productId: string; quantity: number }>,
@@ -56,7 +65,9 @@ const AddToCart = createSlice({
       if (product) {
         product.quantity = action.payload.quantity;
       }
+      saveCartToLocalStorage(state.cart); // ذخیره وضعیت جدید
     },
+    // افزایش تعداد محصول
     PlusProductQuantity: (
       state,
       action: PayloadAction<{ productId: string }>,
@@ -67,7 +78,9 @@ const AddToCart = createSlice({
       if (product) {
         product.quantity += 1;
       }
+      saveCartToLocalStorage(state.cart); // ذخیره وضعیت جدید
     },
+    // کاهش تعداد محصول
     MinusProductQuantity: (
       state,
       action: PayloadAction<{ productId: string }>,
@@ -78,10 +91,12 @@ const AddToCart = createSlice({
       if (product && product.quantity > 0) {
         product.quantity -= 1;
       }
+      saveCartToLocalStorage(state.cart); // ذخیره وضعیت جدید
     },
-    // اکشن برای خالی کردن سبد خرید
+    // خالی کردن سبد خرید
     clearCart: state => {
       state.cart = [];
+      saveCartToLocalStorage(state.cart); // حذف اطلاعات از localStorage
     },
   },
 });
