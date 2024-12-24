@@ -1,3 +1,4 @@
+import { logout } from '@/app/Login-Singup/page';
 import { getSession } from './Session-management';
 
 export const GetAddProduct = async (formData: FormData) => {
@@ -11,6 +12,9 @@ export const GetAddProduct = async (formData: FormData) => {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        logout();
+      }
       throw new Error(`Error: ${response.statusText}`);
     }
 
