@@ -5,18 +5,18 @@ import { getAllUserData } from '@/apis/AllUserData';
 import OrderForAdmin from '@/components/Admin-Panel/Order';
 import PriceAndQuantity from '@/components/Admin-Panel/PriceAndQuantity';
 import ProductContainer from '@/components/Admin-Panel/product';
-import Button from '@/components/Global/Button';
-import Input from '@/components/Global/Input';
+
 import { RootState } from '@/Redux/store';
 import { IResUserlist } from '@/types/Alluser';
 import { IResOrders } from '@/types/Orders';
 import { IProductsList } from '@/types/Product';
-import { ClassNames } from '@/utils/classname-join';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import React from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { z } from 'zod';
+import { useAuth } from '@/Provider/AuthProvider';
 
 const EditSchema = z.object({
   name: z.string().min(1, 'نام محصول الزامی است'),
@@ -68,6 +68,22 @@ const AdminPanel: React.FC = () => {
   for (let i = 1; i <= Number(AllOrders?.total_pages); i++) {
     totalpagesArrayFororders.push(i);
   }
+  const { logout } = useAuth();
+  React.useEffect(() => {
+    console.log('Setting up timer...');
+    const timer = setInterval(
+      () => {
+        console.log('Calling logout...');
+        logout();
+      },
+      15 * 60 * 1000,
+    );
+
+    return () => {
+      console.log('Cleaning up timer...');
+      clearInterval(timer);
+    };
+  }, []);
 
   const EditForm = useForm<EditFormInputs>({
     resolver: zodResolver(EditSchema),

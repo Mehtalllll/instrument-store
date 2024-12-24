@@ -1,3 +1,4 @@
+import { logout } from '@/app/Login-Singup/page';
 import { getSession } from './Session-management';
 
 export const getAllUserData = async () => {
@@ -10,9 +11,15 @@ export const getAllUserData = async () => {
         Authorization: `Bearer ${getSession('accessToken')}`,
       },
     });
-    console.log(response.ok);
 
     const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 200) {
+        logout();
+      }
+      throw new Error(`Error: ${response.statusText}`);
+    }
 
     if (response.ok) {
       console.log('Login successful:', result);

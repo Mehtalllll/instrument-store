@@ -7,6 +7,7 @@ import { FaCaretUp } from 'react-icons/fa6';
 import { AddToCartActions } from '@/Redux/Features/AddToCart';
 import Button from '@/components/Global/Button';
 import { ClassNames } from '@/utils/classname-join';
+import toPersianNumbers from '@/utils/EnToFA';
 
 const OrdersForUser: React.FC = () => {
   const dispatch = useDispatch();
@@ -75,9 +76,11 @@ const OrdersForUser: React.FC = () => {
                         />
                       </td>
                       <td className="p-2 text-xs sm:text-sm ">
-                        {o.price * o.quantity}
+                        {toPersianNumbers(o.price * o.quantity)}
                       </td>
-                      <td className="p-2 text-xs sm:text-sm">{o.price}</td>
+                      <td className="p-2 text-xs sm:text-sm">
+                        {toPersianNumbers(o.price)}
+                      </td>
                       <td className="p-2 text-xs sm:text-sm ">
                         <div className="flex justify-center">
                           <button
@@ -154,7 +157,7 @@ const OrdersForUser: React.FC = () => {
             )}
           />
           <p className="text-sm font-bold text-slate-700 sm:text-base">
-            مبلغ قابل پرداخت:{totalAmount}
+            مبلغ قابل پرداخت: {toPersianNumbers(totalAmount)}
           </p>
         </div>
       </div>
