@@ -9,6 +9,9 @@ import ModalForEdite from '../Global/Edite-modal';
 import { GetEditeorder } from '@/apis/EditOrder';
 import { useQuery, useQueryClient } from 'react-query';
 import toast from 'react-hot-toast';
+import { table } from 'console';
+import { fetchProductById } from '@/apis/GetProductById';
+import ProductName from './orderProduct';
 
 const OrderForAdmin: React.FC = () => {
   const [Pageproduct, setPageproduct] = React.useState<number>(1);
@@ -316,6 +319,44 @@ const OrderForAdmin: React.FC = () => {
                     می باشد
                   </p>
                   <p>آیا می خواهید وضعیت را تغییر دهید؟</p>
+                </div>
+                <div className="w-full max-w-96 max-h-72 noscrollbar overflow-y-scroll">
+                  <table className="w-full max-w-[1000px] mx-auto border-collapse border border-gray-300 text-center">
+                    <thead className="bg-gray-100 text-gray-800">
+                      <tr className="border-b border-gray-300">
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          لیست سفارشات
+                        </th>
+                        <th className="p-2 text-xs sm:text-sm font-medium">
+                          ترتیب
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {AllOrders.data?.data.orders
+                        .filter(u => u.user === o.user)
+                        .map((or, index) => (
+                          <tr
+                            key={or._id}
+                            className={`${
+                              index % 2 === 0 ? 'bg-teal-50' : 'bg-white'
+                            } hover:bg-gray-50`}
+                          >
+                            <td className="p-2 text-xs sm:text-sm text-gray-700 font-semibold  ">
+                              {or.products.map(p => (
+                                <ProductName
+                                  key={p.product}
+                                  productId={p.product}
+                                />
+                              ))}
+                            </td>
+                            <td className="p-2 text-xs sm:text-sm text-gray-700 font-semibold">
+                              {index + 1}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
                 </div>
                 <div className="col-span-4 w-full gap-x-4 grid grid-cols-2 justify-items-center pt-2">
                   {o.deliveryStatus == true ? (

@@ -36,6 +36,16 @@ const categoriesAndSubcategories = createSlice({
     },
     setsubCategoriesForFilter: (state, action: PayloadAction<string>) => {
       state.subcategorieId = action.payload;
+
+      // پیدا کردن کتگوری مرتبط با این ساب‌کتگوری
+      const relatedCategory = state.subcategories?.data?.subcategories.find(
+        sub => sub._id === action.payload, // پیدا کردن ساب‌کتگوری با آیدی انتخاب‌شده
+      )?.category;
+
+      // اگر کتگوری پیدا شد، مقدار آن را تنظیم می‌کنیم
+      if (relatedCategory) {
+        state.categorieId = relatedCategory;
+      }
     },
   },
 });

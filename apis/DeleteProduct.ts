@@ -1,3 +1,4 @@
+import { logout } from '@/app/Login-Singup/page';
 import { getSession } from './Session-management';
 
 export const fetchDelproduct = async (id: string) => {
@@ -10,7 +11,12 @@ export const fetchDelproduct = async (id: string) => {
       },
     });
 
-    if (!response.ok) throw new Error('Failed to fetch categories');
+    if (!response.ok) {
+      if (response.status === 401) {
+        logout();
+      }
+      throw new Error(`Error: ${response.statusText}`);
+    }
     return await response.json();
   } catch (error) {
     console.error('Error fetching categories:', error);

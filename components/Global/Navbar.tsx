@@ -16,6 +16,7 @@ import { RootState } from '@/Redux/store';
 import { TiDeleteOutline } from 'react-icons/ti';
 import { AddToCartActions } from '@/Redux/Features/AddToCart';
 import { ClassNames } from '@/utils/classname-join';
+import toPersianNumbers from '@/utils/EnToFA';
 
 const Navbar: React.FC = () => {
   const [isOpenCart, setisOpenCart] = React.useState<boolean>(false);
@@ -58,7 +59,7 @@ const Navbar: React.FC = () => {
   return (
     <main className="container mx-auto flex flex-col justify-center p-4">
       <section className="flex flex-row justify-between items-center w-full">
-        <Link href={'./'}>
+        <Link href={'/'}>
           <div className=" sm:gap-x-4 flex flex-row justify-center items-center ">
             <img
               src="./music-shop.png"
@@ -88,7 +89,12 @@ const Navbar: React.FC = () => {
                 >
                   <IoLogOut size={22} />
                 </div>
-                <div className="sm:hidden text-blue-500">
+                <div
+                  className="sm:hidden text-blue-500"
+                  onClick={() => {
+                    delSession('UserId'), toast.success('خروج موفقیت آمیز');
+                  }}
+                >
                   <IoLogOut size={25} title="LogOut" />
                 </div>
               </Link>
@@ -120,7 +126,7 @@ const Navbar: React.FC = () => {
                   </div>
                 </Link>
               </div>
-              <Link href={'./orders'}>
+              <Link href={'/orders'}>
                 <div className="sm:hidden text-green-500 flex justify-center items-center cursor-pointer ">
                   <FaCartShopping size={21} title="سبد خرید" />
                 </div>
@@ -148,7 +154,7 @@ const Navbar: React.FC = () => {
             onMouseLeave={() => setisOpenCart(false)}
             className="hidden sm:block"
           >
-            <Link href={'./orders'}>
+            <Link href={'/orders'}>
               <Button
                 text="سبد خرید"
                 img={<FaCartShopping />}
@@ -208,10 +214,10 @@ const Navbar: React.FC = () => {
                                 />
                               </td>
                               <td className="p-2 text-xs sm:text-sm ">
-                                {o.price * o.quantity}
+                                {toPersianNumbers(o.price * o.quantity)}
                               </td>
                               <td className="p-2 text-xs sm:text-sm">
-                                {o.price}
+                                {toPersianNumbers(o.price)}
                               </td>
                               <td className="p-2 text-xs sm:text-sm ">
                                 <div className="flex justify-center">
@@ -290,7 +296,7 @@ const Navbar: React.FC = () => {
                       )}
                     />
                     <p className="text-sm font-bold text-slate-700 sm:text-base">
-                      مبلغ قابل پرداخت:{totalAmount}
+                      مبلغ قابل پرداخت: {toPersianNumbers(totalAmount)}
                     </p>
                   </div>
                 </div>

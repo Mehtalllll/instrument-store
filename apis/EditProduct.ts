@@ -1,3 +1,5 @@
+import { logout } from '@/app/Login-Singup/page';
+
 export const GetEditeProduct = async (formData: FormData, id: any) => {
   try {
     const response = await fetch(`http://localhost:8000/api/products/${id}`, {
@@ -6,6 +8,9 @@ export const GetEditeProduct = async (formData: FormData, id: any) => {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        logout();
+      }
       throw new Error(`Error: ${response.statusText}`);
     }
 
