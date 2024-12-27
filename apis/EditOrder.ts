@@ -1,3 +1,5 @@
+import { logout } from '@/app/Login-Singup/page';
+
 export const GetEditeorder = async (deliveryStatus: boolean, id: any) => {
   try {
     const response = await fetch(`http://localhost:8000/api/orders/${id}`, {
@@ -7,6 +9,9 @@ export const GetEditeorder = async (deliveryStatus: boolean, id: any) => {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        logout();
+      }
       throw new Error(`Error: ${response.statusText}`);
     }
 

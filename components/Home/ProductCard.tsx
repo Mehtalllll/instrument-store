@@ -1,15 +1,10 @@
 import { AddToCartActions } from '@/Redux/Features/AddToCart';
 import { RootState } from '@/Redux/store';
 import { IProduct } from '@/types/Product';
+import toPersianNumbers from '@/utils/EnToFA';
 import { BiSolidCartAdd } from 'react-icons/bi';
 import { FaCaretDown, FaCaretUp } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
-
-const toPersianNumbers = (num: number | string) => {
-  return num
-    .toString()
-    .replace(/\d/g, digit => '۰۱۲۳۴۵۶۷۸۹'[parseInt(digit, 10)]);
-};
 
 export interface IProductCard {
   _id: string;
@@ -123,7 +118,11 @@ const ProductCard: React.FC<IProductCard> = ({
           ) : (
             <div
               className="text-white bg-green-500 cursor-pointer rounded-full w-10 h-10 flex hover:bg-green-400 justify-center items-center"
-              onClick={() => handleAddToCart()}
+              onClick={e => {
+                e.stopPropagation();
+                handleAddToCart();
+                alert('ssssssss');
+              }}
             >
               <BiSolidCartAdd />
             </div>

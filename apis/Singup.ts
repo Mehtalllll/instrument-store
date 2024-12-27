@@ -16,7 +16,8 @@ export const getSingupReq = async (data: SingupFormInputs) => {
 
     if (response.ok) {
       console.log('Singup successful:', result);
-      toast.success('Singup successful');
+      toast.success('ثبت نام با موفقیت انجام شد ');
+      toast.success('لطفا به سایت وارد شوید');
       // هدایت کاربر یا ذخیره توکن
     } else {
       console.error('Login failed:', result);
@@ -24,6 +25,6 @@ export const getSingupReq = async (data: SingupFormInputs) => {
     }
   } catch (error) {
     console.error('Error:', error);
-    alert('مشکلی در برقراری ارتباط وجود دارد');
+    toast.error('مشکلی در برقراری ارتباط وجود دارد');
   }
 };
