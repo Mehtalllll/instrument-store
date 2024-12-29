@@ -17,6 +17,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { z } from 'zod';
 import { useAuth } from '@/Provider/AuthProvider';
+import AdminGuard from '@/components/Admin-Panel/AdminGard';
 
 const EditSchema = z.object({
   name: z.string().min(1, 'نام محصول الزامی است'),
@@ -138,11 +139,13 @@ const AdminPanel: React.FC = () => {
   console.log(information);
 
   return (
-    <main className="container mx-auto ">
-      {activity === 'کالاها' && <ProductContainer />}
-      {activity === 'موجودی و قیمت ها' && <PriceAndQuantity />}
-      {activity === 'سفارشات' && <OrderForAdmin />}
-    </main>
+    <AdminGuard>
+      <main className="container mx-auto ">
+        {activity === 'کالاها' && <ProductContainer />}
+        {activity === 'موجودی و قیمت ها' && <PriceAndQuantity />}
+        {activity === 'سفارشات' && <OrderForAdmin />}
+      </main>
+    </AdminGuard>
   );
 };
 

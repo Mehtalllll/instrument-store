@@ -8,15 +8,29 @@ import { AddToCartActions } from '@/Redux/Features/AddToCart';
 import Button from '@/components/Global/Button';
 import { ClassNames } from '@/utils/classname-join';
 import toPersianNumbers from '@/utils/EnToFA';
+import { useQuery } from 'react-query';
+import { getSession } from '@/apis/Session-management';
+import React from 'react';
+import fetchUserOrders from '@/apis/GetCart';
 
 const OrdersForUser: React.FC = () => {
-  const dispatch = useDispatch();
-  const orders = useSelector((state: RootState) => state.AddToCart.cart);
-
-  const totalAmount = orders.reduce(
-    (total, product) => total + product.price * product.quantity,
-    0,
+  const [userId, setuserId] = React.useState<string | null>(
+    getSession('UserId'),
   );
+  const dispatch = useDispatch();
+  const orders = useQuery(
+    ['orders', userId],
+    () => fetchUserOrders(userId as string), // فراخوانی تابع برای دریافت سفارش‌ها
+    {
+      enabled: !!userId, // تنها زمانی که شناسه کاربر وجود دارد این درخواست انجام می‌شود
+    },
+  );
+  console.log(orders.data);
+
+  // const totalAmount = orders.reduce(
+  //   (total, product) => total + product.price * product.quantity,
+  //   0,
+  // );
 
   return (
     <main className="p-4">
@@ -54,7 +68,7 @@ const OrdersForUser: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {orders.length ? (
+              {/* {orders.length ? (
                 orders
                   .filter(e => e.quantity > 0)
                   .map((o, index) => (
@@ -142,7 +156,7 @@ const OrdersForUser: React.FC = () => {
                     سفارشی موجود نیست
                   </td>
                 </tr>
-              )}
+              )} */}
             </tbody>
           </table>
         </div>
@@ -157,7 +171,7 @@ const OrdersForUser: React.FC = () => {
             )}
           />
           <p className="text-sm font-bold text-slate-700 sm:text-base">
-            مبلغ قابل پرداخت: {toPersianNumbers(totalAmount)}
+            {/* مبلغ قابل پرداخت: {toPersianNumbers(totalAmount)} */}
           </p>
         </div>
       </div>
