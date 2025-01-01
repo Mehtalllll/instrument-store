@@ -17,6 +17,12 @@ import { TiDeleteOutline } from 'react-icons/ti';
 import { AddToCartActions } from '@/Redux/Features/AddToCart';
 import { ClassNames } from '@/utils/classname-join';
 import toPersianNumbers from '@/utils/EnToFA';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import {
+  addItemToCart,
+  deleteProductFromCart,
+  fetchCart,
+} from '@/apis/PostCart';
 
 const Navbar: React.FC = () => {
   const [isOpenCart, setisOpenCart] = React.useState<boolean>(false);
@@ -24,6 +30,11 @@ const Navbar: React.FC = () => {
     name: string;
     role: string;
   } | null>(null);
+  const [userid, setuserid] = React.useState<string | null>(
+    getSession('UserId'),
+  );
+  const [reload, setreload] = React.useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.AddToCart.cart);
@@ -32,6 +43,42 @@ const Navbar: React.FC = () => {
     (total, product) => total + product.price * product.quantity,
     0,
   );
+
+  const orderforApi = useQuery(
+    ['orderforApi', userid, reload, isOpenCart],
+    () => fetchCart(userid as string),
+    {
+      keepPreviousData: true,
+      staleTime: 5000,
+      onSuccess: () => setreload(false),
+    },
+  );
+
+  const removeProductMutation = useMutation(
+    (id: string) => deleteProductFromCart(userid as string, id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('orderforApi');
+      },
+    },
+  );
+
+  const increaseQuantityMutation = useMutation(
+    (product: any) => addItemToCart(userid as string, product),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('orderforApi');
+      },
+    },
+  );
+
+  const handleRemoveProduct = (id: string) => {
+    removeProductMutation.mutate(id);
+  };
+
+  const handleIncreaseQuantity = (product: any) => {
+    increaseQuantityMutation.mutate(product);
+  };
 
   React.useEffect(() => {
     const fetchUserData = async () => {
@@ -158,7 +205,13 @@ const Navbar: React.FC = () => {
               <Button
                 text="سبد خرید"
                 img={<FaCartShopping />}
-                number={totalQuantity}
+                number={
+                  userid
+                    ? orderforApi.data
+                        ?.filter(e => e.userId === userid)
+                        .reduce((acc, item) => acc + item.quantity, 0)
+                    : totalQuantity
+                }
                 classname=" font-semibold w-36  border-green-500 text-green-500"
                 color="bg-green-500"
               />
@@ -190,17 +243,83 @@ const Navbar: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {orders.length ? (
+                      {userid !== null &&
+                      orderforApi.isSuccess &&
+                      orderforApi.data.length > 0 ? (
+                        orderforApi.data.map((o, index) =>
+                          o.product ? (
+                            <tr
+                              key={o.product._id}
+                              className={`${index % 2 === 0 ? 'bg-teal-50' : 'bg-white'} hover:bg-gray-50`}
+                            >
+                              <td className="p-2">
+                                <TiDeleteOutline
+                                  className="mx-auto w-10 cursor-pointer hover:text-red-500"
+                                  size={25}
+                                  onClick={() => (
+                                    deleteProductFromCart(
+                                      userid,
+                                      o.product._id,
+                                    ),
+                                    setreload(!reload),
+                                    console.log(o.product._id)
+                                  )}
+                                />
+                              </td>
+                              <td className="p-2 text-xs sm:text-sm">
+                                {toPersianNumbers(o.product.price * o.quantity)}
+                              </td>
+                              <td className="p-2 text-xs sm:text-sm">
+                                {toPersianNumbers(o.product.price)}
+                              </td>
+                              <td className="p-2 text-xs sm:text-sm">
+                                <div className="flex justify-center">
+                                  <button
+                                    onClick={() =>
+                                      handleIncreaseQuantity(o.product)
+                                    }
+                                    className="w-5 bg-teal-300 hover:bg-teal-200 flex justify-center items-center h-7 cursor-pointer rounded-l-md"
+                                  >
+                                    <FaCaretUp />
+                                  </button>
+                                  <input
+                                    className="w-7 text-center h-7 "
+                                    type="text"
+                                    value={o.quantity}
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      handleRemoveProduct(o.product._id)
+                                    }
+                                    className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center rounded-r-md"
+                                  >
+                                    <FaCaretDown />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="text-xs sm:text-sm p-2">
+                                {o.product.name}
+                              </td>
+                              <td className="flex justify-center p-2">
+                                <img
+                                  src={`http://localhost:8000/images/products/images/${o.product.images[0]}`}
+                                  alt={o.product.name}
+                                  className="w-full max-w-20"
+                                />
+                              </td>
+                            </tr>
+                          ) : null,
+                        )
+                      ) : orders.length > 0 && !userid ? (
+                        // اگر داده‌ها از API وجود ندارد، داده‌ها از local state (orders) نمایش داده می‌شود
                         orders
                           .filter(e => e.quantity > 0)
                           .map((o, index) => (
                             <tr
                               key={o._id}
-                              className={`${
-                                index % 2 === 0 ? 'bg-teal-50' : 'bg-white'
-                              } hover:bg-gray-50`}
+                              className={`${index % 2 === 0 ? 'bg-teal-50' : 'bg-white'} hover:bg-gray-50`}
                             >
-                              <td className="p-2  ">
+                              <td className="p-2">
                                 <TiDeleteOutline
                                   className="mx-auto w-10 cursor-pointer hover:text-red-500"
                                   size={25}
@@ -213,13 +332,13 @@ const Navbar: React.FC = () => {
                                   }
                                 />
                               </td>
-                              <td className="p-2 text-xs sm:text-sm ">
+                              <td className="p-2 text-xs sm:text-sm">
                                 {toPersianNumbers(o.price * o.quantity)}
                               </td>
                               <td className="p-2 text-xs sm:text-sm">
                                 {toPersianNumbers(o.price)}
                               </td>
-                              <td className="p-2 text-xs sm:text-sm ">
+                              <td className="p-2 text-xs sm:text-sm">
                                 <div className="flex justify-center">
                                   <button
                                     onClick={() =>
@@ -246,7 +365,6 @@ const Navbar: React.FC = () => {
                                       )
                                     }
                                   />
-
                                   <button
                                     onClick={() =>
                                       dispatch(
@@ -255,7 +373,7 @@ const Navbar: React.FC = () => {
                                         }),
                                       )
                                     }
-                                    className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center  rounded-r-md"
+                                    className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center rounded-r-md"
                                   >
                                     <FaCaretDown />
                                   </button>
@@ -264,16 +382,17 @@ const Navbar: React.FC = () => {
                               <td className="text-xs sm:text-sm p-2">
                                 {o.name}
                               </td>
-                              <td className=" flex justify-center p-2">
+                              <td className="flex justify-center p-2">
                                 <img
                                   src={`http://localhost:8000/images/products/images/${o.images[0]}`}
                                   alt={o.name}
-                                  className=" w-full max-w-20"
+                                  className="w-full max-w-20"
                                 />
                               </td>
                             </tr>
                           ))
                       ) : (
+                        // اگر هیچ داده‌ای از API یا local state وجود نداشت
                         <tr>
                           <td
                             colSpan={6}
