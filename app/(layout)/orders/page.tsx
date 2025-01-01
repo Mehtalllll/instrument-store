@@ -13,6 +13,7 @@ import React from 'react';
 import { getSession } from '@/apis/Session-management';
 import {
   addItemToCart,
+  clearalllist,
   deleteProductFromCart,
   fetchCart,
 } from '@/apis/PostCart';
@@ -41,6 +42,13 @@ const OrdersForUser: React.FC = () => {
     },
   );
 
+  const totalAmountAPI = orderforApi.data
+    ?.filter(a => a.userId === userid)
+    .reduce(
+      (total, product) => total + product.product.price * product.quantity,
+      0,
+    );
+
   const removeProductMutation = useMutation(
     (id: string) => deleteProductFromCart(userid as string, id),
     {
@@ -67,13 +75,23 @@ const OrdersForUser: React.FC = () => {
     increaseQuantityMutation.mutate(product);
   };
 
+  const handleClearAllorder = () => {
+    if (!userid) {
+      dispatch(AddToCartActions.clearCart());
+    } else {
+      clearalllist(userid as string).then(() => {
+        queryClient.invalidateQueries('orderforApi'); // کوئری را دوباره اجرا می‌کند
+      });
+    }
+  };
+
   return (
     <main className="p-4">
       <div className="bg-white w-full h-fit rounded-md shadow-lg p-3 ">
         <div className="flex justify-between pb-2">
           <Button
             text="خالی کردن سبد خرید"
-            onClick={() => dispatch(AddToCartActions.clearCart())}
+            onClick={handleClearAllorder}
             classname={ClassNames(
               'border-green-300 text-xs text-white w-[110px] flex',
               ' justify-center h-7 font-semibold bg-teal-500 hover:bg-teal-400',
@@ -265,7 +283,10 @@ const OrdersForUser: React.FC = () => {
             )}
           />
           <p className="text-sm font-bold text-slate-700 sm:text-base">
-            مبلغ قابل پرداخت: {toPersianNumbers(totalAmount)}
+            مبلغ قابل پرداخت:{' '}
+            {userid && orderforApi.isSuccess
+              ? toPersianNumbers(totalAmountAPI as number)
+              : toPersianNumbers(totalAmount)}
           </p>
         </div>
       </div>

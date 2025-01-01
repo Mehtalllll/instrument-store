@@ -100,3 +100,37 @@ export async function DELETE(request: Request) {
 
   return NextResponse.json(cartData, { status: 200 });
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json(); // دریافت داده‌های ارسالی در درخواست
+
+    // بررسی داده‌های ورودی
+    if (!body || !body.userId) {
+      return NextResponse.json(
+        { error: 'UserId is required' },
+        { status: 400 },
+      );
+    }
+
+    // خواندن داده‌های موجود
+    const cartData: ICardData[] = await readCartData();
+
+    // حذف کاربر موردنظر
+    const newcartData = cartData.filter(d => d.userId !== body.userId);
+
+    // ذخیره داده‌های جدید
+    await writeCartData(newcartData as any);
+
+    // بازگرداندن پاسخ با داده‌های جدید
+    return NextResponse.json(newcartData, { status: 200 });
+  } catch (error) {
+    console.error('Error in PUT API:', error);
+
+    // بازگرداندن پاسخ در صورت بروز خطا
+    return NextResponse.json(
+      { error: 'An error occurred while processing your request.' },
+      { status: 500 },
+    );
+  }
+}

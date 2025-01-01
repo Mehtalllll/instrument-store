@@ -54,6 +54,13 @@ const Navbar: React.FC = () => {
     },
   );
 
+  const totalAmountAPI = orderforApi.data
+    ?.filter(a => a.userId === userid)
+    .reduce(
+      (total, product) => total + product.product.price * product.quantity,
+      0,
+    );
+
   const removeProductMutation = useMutation(
     (id: string) => deleteProductFromCart(userid as string, id),
     {
@@ -415,7 +422,10 @@ const Navbar: React.FC = () => {
                       )}
                     />
                     <p className="text-sm font-bold text-slate-700 sm:text-base">
-                      مبلغ قابل پرداخت: {toPersianNumbers(totalAmount)}
+                      مبلغ قابل پرداخت:{' '}
+                      {userid && orderforApi.isSuccess
+                        ? toPersianNumbers(totalAmountAPI as number)
+                        : toPersianNumbers(totalAmount)}
                     </p>
                   </div>
                 </div>

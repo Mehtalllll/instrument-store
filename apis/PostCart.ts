@@ -76,3 +76,28 @@ export async function deleteProductFromCart(userId: string, productId: string) {
     return null;
   }
 }
+
+export async function clearalllist(userId: string) {
+  try {
+    const response = await fetch('/api/cart', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Product successfully deleted or quantity updated:', data);
+      return data;
+    } else {
+      const errorData = await response.json();
+      console.error('Error deleting product:', errorData.error);
+      return null;
+    }
+  } catch (error) {
+    console.error('Request failed:', error);
+    return null;
+  }
+}
