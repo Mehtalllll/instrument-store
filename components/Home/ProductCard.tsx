@@ -99,12 +99,13 @@ const ProductCard: React.FC<IProductCard> = ({
       images: images,
       slugname: slugname,
     };
-    dispatch(AddToCartActions.addProductToCart(product));
+    !userid && dispatch(AddToCartActions.addProductToCart(product));
     userid && handleIncreaseQuantity(product);
   };
 
   const handleUpdateQuantity = (productId: string) => {
-    dispatch(AddToCartActions.MinusProductQuantity({ productId: productId }));
+    !userid &&
+      dispatch(AddToCartActions.MinusProductQuantity({ productId: productId }));
   };
 
   const quantityinp = useSelector((State: RootState) => State.AddToCart.cart);

@@ -17,8 +17,10 @@ import {
   deleteProductFromCart,
   fetchCart,
 } from '@/apis/PostCart';
+import { useRouter } from 'next/navigation';
 
 const OrdersForUser: React.FC = () => {
+  const router = useRouter();
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.AddToCart.cart);
   const [userid, setuserid] = React.useState<string | null>(
@@ -275,7 +277,9 @@ const OrdersForUser: React.FC = () => {
         <div className="flex justify-around py-4">
           <Button
             text="نهایی کردن خرید"
-            onClick={() => dispatch(AddToCartActions.clearCart())}
+            onClick={() =>
+              userid ? router.push('/checkout') : router.push('/Login-Singup')
+            }
             classname={ClassNames(
               'border-green-300 text-xs text-white w-[110px] flex',
               ' justify-center h-7 font-semibold bg-green-500 hover:bg-green-400',

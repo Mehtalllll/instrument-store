@@ -23,6 +23,7 @@ import {
   deleteProductFromCart,
   fetchCart,
 } from '@/apis/PostCart';
+import { useRouter } from 'next/navigation';
 
 const Navbar: React.FC = () => {
   const [isOpenCart, setisOpenCart] = React.useState<boolean>(false);
@@ -34,6 +35,7 @@ const Navbar: React.FC = () => {
     getSession('UserId'),
   );
   const [reload, setreload] = React.useState<boolean>(false);
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const dispatch = useDispatch();
@@ -414,7 +416,11 @@ const Navbar: React.FC = () => {
                   <div className="flex justify-around py-4">
                     <Button
                       text="نهایی کردن خرید"
-                      onClick={() => dispatch(AddToCartActions.clearCart())}
+                      onClick={() =>
+                        userid
+                          ? router.push('/checkout')
+                          : router.push('/Login-Singup')
+                      }
                       classname={ClassNames(
                         'border-green-300 text-xs text-white w-[110px] flex',
                         ' justify-center h-7 font-semibold bg-green-500 hover:bg-green-400',
