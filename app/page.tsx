@@ -104,21 +104,19 @@ export default function Home() {
             {Allproduct.isSuccess &&
               Allproduct.data?.data.products.map(p => (
                 <div key={p._id} className=" mx-auto">
-                  <Link key={p._id} href={`./products/${p._id}`}>
-                    <ProductCard
-                      _id={p._id}
-                      category={p.category}
-                      subcategory={p.subcategory}
-                      name={p.name}
-                      price={p.price}
-                      quantity={p.quantity}
-                      brand={p.brand}
-                      description={p.description}
-                      thumbnail={p.thumbnail}
-                      images={p.images}
-                      slugname={p.slugname}
-                    />
-                  </Link>
+                  <ProductCard
+                    _id={p._id}
+                    category={p.category}
+                    subcategory={p.subcategory}
+                    name={p.name}
+                    price={p.price}
+                    quantity={p.quantity}
+                    brand={p.brand}
+                    description={p.description}
+                    thumbnail={p.thumbnail}
+                    images={p.images}
+                    slugname={p.slugname}
+                  />
                 </div>
               ))}
           </div>

@@ -11,16 +11,68 @@ import { AddToCartActions } from '@/Redux/Features/AddToCart';
 import { FaCaretDown, FaCaretUp } from 'react-icons/fa6';
 import { RootState } from '@/Redux/store';
 import toPersianNumbers from '@/utils/EnToFA';
+import React from 'react';
+import { getSession } from '@/apis/Session-management';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import {
+  addItemToCart,
+  deleteProductFromCart,
+  fetchCart,
+} from '@/apis/PostCart';
 
 export default function ProductPage() {
   const params = useParams();
   const id = params?.id;
 
   const [product, setProduct] = useState<IProductById | null>(null);
+  const [userid, setuserid] = React.useState<string | null>(
+    getSession('UserId'),
+  );
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
-
+  const queryClient = useQueryClient();
   const quantityinp = useSelector((State: RootState) => State.AddToCart.cart);
+
+  const orderforApi = useQuery(
+    ['orderforApi', userid],
+    () => fetchCart(userid as string),
+    {
+      keepPreviousData: true,
+      staleTime: 5000,
+      onSuccess: data => {
+        const quantities: Record<string, number> = {};
+        data.forEach(item => {
+          quantities[item.product._id] = item.quantity;
+        });
+      },
+    },
+  );
+
+  const removeProductMutation = useMutation(
+    (id: string) => deleteProductFromCart(userid as string, id),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('orderforApi');
+      },
+    },
+  );
+
+  const increaseQuantityMutation = useMutation(
+    (product: any) => addItemToCart(userid as string, product),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('orderforApi');
+      },
+    },
+  );
+
+  const handleRemoveProduct = (id: string) => {
+    removeProductMutation.mutate(id);
+  };
+
+  const handleIncreaseQuantity = (product: any) => {
+    increaseQuantityMutation.mutate(product);
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -86,7 +138,8 @@ export default function ProductPage() {
       images: selectedProduct.images,
       slugname: selectedProduct.slugname,
     };
-    dispatch(AddToCartActions.addProductToCart(product));
+    !userid && dispatch(AddToCartActions.addProductToCart(product));
+    userid && handleIncreaseQuantity(product);
   };
   const imageSrc =
     selectedProduct.images && selectedProduct.images.length > 0
@@ -119,55 +172,88 @@ export default function ProductPage() {
                 onClick={() => handleAddToCart()}
               />
               <div>
-                {quantityinp &&
-                  Number(
-                    quantityinp.find(q => q._id == selectedProduct._id)
-                      ?.quantity,
-                  ) > 0 &&
-                  quantityinp
-                    .filter(q => q._id == selectedProduct._id)
-                    .map(o => (
-                      <div className="flex justify-center">
-                        <button
-                          onClick={() =>
-                            dispatch(
-                              AddToCartActions.PlusProductQuantity({
-                                productId: o._id,
-                              }),
-                            )
-                          }
-                          className="w-5 bg-teal-300 hover:bg-teal-200 flex justify-center items-center h-7 cursor-pointer rounded-l-md"
-                        >
-                          <FaCaretUp />
-                        </button>
-                        <input
-                          className="w-7 text-center h-7 "
-                          type="text"
-                          value={o.quantity}
-                          onChange={e =>
-                            dispatch(
-                              AddToCartActions.updateProductQuantity({
-                                productId: o._id,
-                                quantity: Number(e.target.value),
-                              }),
-                            )
-                          }
-                        />
+                {!!userid
+                  ? orderforApi.isSuccess &&
+                    Number(
+                      orderforApi.data.find(
+                        q =>
+                          q.product._id == selectedProduct._id &&
+                          q.userId === userid,
+                      )?.quantity,
+                    ) > 0 &&
+                    orderforApi.data
+                      .filter(q => q.product._id == selectedProduct._id)
+                      .map(o => (
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() => handleAddToCart()}
+                            className="w-5 bg-teal-300 hover:bg-teal-200 flex justify-center items-center h-7 cursor-pointer rounded-l-md"
+                          >
+                            <FaCaretUp />
+                          </button>
+                          <input
+                            className="w-7 text-center h-7 "
+                            type="text"
+                            value={o.quantity}
+                          />
 
-                        <button
-                          onClick={() =>
-                            dispatch(
-                              AddToCartActions.MinusProductQuantity({
-                                productId: o._id,
-                              }),
-                            )
-                          }
-                          className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center  rounded-r-md"
-                        >
-                          <FaCaretDown />
-                        </button>
-                      </div>
-                    ))}
+                          <button
+                            onClick={() => handleRemoveProduct(o.product._id)}
+                            className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center  rounded-r-md"
+                          >
+                            <FaCaretDown />
+                          </button>
+                        </div>
+                      ))
+                  : quantityinp &&
+                    Number(
+                      quantityinp.find(q => q._id == selectedProduct._id)
+                        ?.quantity,
+                    ) > 0 &&
+                    quantityinp
+                      .filter(q => q._id == selectedProduct._id)
+                      .map(o => (
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() =>
+                              dispatch(
+                                AddToCartActions.PlusProductQuantity({
+                                  productId: o._id,
+                                }),
+                              )
+                            }
+                            className="w-5 bg-teal-300 hover:bg-teal-200 flex justify-center items-center h-7 cursor-pointer rounded-l-md"
+                          >
+                            <FaCaretUp />
+                          </button>
+                          <input
+                            className="w-7 text-center h-7 "
+                            type="text"
+                            value={o.quantity}
+                            onChange={e =>
+                              dispatch(
+                                AddToCartActions.updateProductQuantity({
+                                  productId: o._id,
+                                  quantity: Number(e.target.value),
+                                }),
+                              )
+                            }
+                          />
+
+                          <button
+                            onClick={() =>
+                              dispatch(
+                                AddToCartActions.MinusProductQuantity({
+                                  productId: o._id,
+                                }),
+                              )
+                            }
+                            className="w-5 bg-teal-300 hover:bg-teal-200 h-7 cursor-pointer flex justify-center items-center  rounded-r-md"
+                          >
+                            <FaCaretDown />
+                          </button>
+                        </div>
+                      ))}
               </div>
             </section>
           </div>
@@ -175,4 +261,7 @@ export default function ProductPage() {
       </div>
     </main>
   );
+}
+function setreload(arg0: boolean): void {
+  throw new Error('Function not implemented.');
 }
